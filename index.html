@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Intensity Index Tracker</title>
 <style>
   body {
@@ -14,22 +14,39 @@
     padding:2rem 1rem;
   }
   h1 { font-size:2rem; margin-bottom:0.5rem; }
-  #indexValue { font-size:3rem; font-weight:700; margin:1rem 0 2rem; }
+  #indexValue { font-size:3.5rem; font-weight:700; margin:1rem 0 2rem; }
+
+  /* Bigger, easier-to-tap buttons */
   .btn {
-    display:block; width:90%; max-width:400px;
-    margin:1rem auto; padding:1.5rem;
-    font-size:1.4rem; border:none; border-radius:1rem;
-    color:#fff; background:#1e88e5;
+    display:block;
+    width:95%;
+    max-width:480px;
+    margin:1rem auto;
+    padding:2rem;               /* increased tap area */
+    font-size:1.6rem;           /* larger text */
+    border:none;
+    border-radius:1.2rem;
+    color:#fff;
+    background:#1e88e5;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
   }
-  .btn:active { transform:scale(0.98); }
+  .btn:active { transform:scale(0.97); }
+  #tackleMinus { background:#444; }
   #possessionBtn.active { background:#d32f2f; }
-  .small { font-size:1rem; color:#aaa; margin-top:2rem; line-height:1.6; }
+
+  .small {
+    font-size:1rem;
+    color:#aaa;
+    margin-top:2rem;
+    line-height:1.6;
+  }
 
   /* Reset slider styles */
   .slider-container {
     position: relative;
-    width: 90%; max-width: 400px;
-    height: 60px;
+    width: 95%;
+    max-width: 480px;
+    height: 70px;                /* taller slider */
     background: #333;
     border-radius: 50px;
     margin: 3rem auto 0;
@@ -43,20 +60,20 @@
     top: 50%; left: 0;
     transform: translateY(-50%);
     color: #aaa;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     pointer-events: none;
     transition: color 0.3s;
   }
   .slider-handle {
     position: absolute;
     top: 5px; left: 5px;
-    width: 50px; height: 50px;
+    width: 60px; height: 60px;   /* larger handle */
     border-radius: 50%;
     background: #1e88e5;
     transition: background 0.3s;
   }
   .slider-container.complete {
-    background: #2e7d32; /* green background when reset */
+    background: #2e7d32;
   }
   .slider-container.complete .slider-handle {
     background: #43a047;
@@ -72,7 +89,7 @@
 <div id="indexValue">0.00</div>
 
 <button id="tacklePlus" class="btn">+1 Tackle</button>
-<button id="tackleMinus" class="btn" style="background:#555;">−1 Tackle</button>
+<button id="tackleMinus" class="btn">−1 Tackle</button>
 <button id="possessionBtn" class="btn">Start Opposition Possession</button>
 
 <div class="small">
@@ -146,12 +163,10 @@ function resetAll() {
   btnPos.classList.remove("active");
   render();
 
-  // Show visual confirmation
   slider.classList.add("complete");
   sliderText.textContent = "✅ Game Reset";
   handle.style.left = (slider.offsetWidth - handle.offsetWidth - 5) + "px";
-  
-  // After short delay, revert slider state
+
   setTimeout(() => {
     slider.classList.remove("complete");
     handle.style.left = "5px";
