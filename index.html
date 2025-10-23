@@ -6,9 +6,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Intensity Index Tracker</title>
 <style>
-  :root {
-    color-scheme: light dark;
-  }
+  :root { color-scheme: light dark; }
 
   body {
     font-family: system-ui, sans-serif;
@@ -21,9 +19,11 @@
   /* Light / Dark dynamic backgrounds */
   @media (prefers-color-scheme: dark) {
     body { background: linear-gradient(180deg,#111,#222); color:#fff; }
+    .small { color:#ccc; }
   }
   @media (prefers-color-scheme: light) {
-    body { background: linear-gradient(180deg,#e6e6e6,#fafafa); color:#111; }
+    body { background: linear-gradient(180deg,#f0f0f0,#ffffff); color:#111; }
+    .small { color:#333; } /* darker and more readable in light mode */
   }
 
   h1 { font-size:2rem; margin-bottom:0.5rem; }
@@ -42,27 +42,25 @@
     box-shadow:0 4px 10px rgba(0,0,0,0.3);
     transition: background 0.15s, transform 0.1s, filter 0.15s;
   }
-  .btn:active {
-    transform:scale(0.97);
-    filter: brightness(1.3);
-  }
   #tackleMinus { background:#444; }
   #possessionBtn.active { background:#d32f2f; }
-
-  /* Flash animation */
-  .flash {
-    animation: flash 0.25s ease-out;
+  .btn:active {
+    transform:scale(0.96);
+    filter: brightness(1.3);
   }
+
+  /* Flash + pulse feedback */
+  .flash { animation: flash 0.25s ease-out; }
   @keyframes flash {
-    0% { filter:brightness(2); }
-    100% { filter:brightness(1); }
+    0% { filter:brightness(2); transform:scale(1.05); }
+    100% { filter:brightness(1); transform:scale(1); }
   }
 
   .small {
     font-size:1rem;
-    color:rgba(170,170,170,0.9);
     margin-top:2rem;
     line-height:1.6;
+    transition:color 0.3s;
   }
 
   /* Reset slider */
@@ -127,7 +125,6 @@
   Opposition Possession Time (min): <span id="timeCount">0.00</span>
 </div>
 
-<!-- Reset slider -->
 <div class="slider-container" id="resetSlider">
   <div class="slider-text" id="sliderText">Slide to Reset</div>
   <div class="slider-handle" id="sliderHandle"></div>
@@ -149,7 +146,17 @@ const slider   = document.getElementById("resetSlider");
 const handle   = document.getElementById("sliderHandle");
 const sliderText = document.getElementById("sliderText");
 
-function vibrate(ms){ if("vibrate" in navigator){ navigator.vibrate(ms); } }
+/* Only vibrate on devices that support it (Android etc.) */
+function haptic(ms) {
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+  } else {
+    // Safari fallback: brief visual pulse on body
+    document.body.style.transition = "background 0.1s";
+    document.body.style.background = "rgba(255,255,255,0.1)";
+    setTimeout(()=>document.body.style.background="",150);
+  }
+}
 
 function getCurrentOppSeconds() {
   if (!possessionActive) return oppSecondsAccum;
@@ -181,11 +188,10 @@ function togglePossession() {
   }
 }
 
-/* --- Flash + vibration for tackle buttons --- */
 function flashButton(btn) {
   btn.classList.add("flash");
   setTimeout(()=>btn.classList.remove("flash"),200);
-  vibrate(30);
+  haptic(30);
 }
 
 document.getElementById("tacklePlus").onclick = e => {
@@ -202,7 +208,7 @@ btnPos.onclick = togglePossession;
 setInterval(() => { if (possessionActive) render(); }, 250);
 render();
 
-/* ---------- Reset slider logic ---------- */
+/* ---------- Reset slider ---------- */
 let startX = 0, currentX = 0, dragging = false;
 function resetAll() {
   tackles = 0;
@@ -216,7 +222,7 @@ function resetAll() {
   slider.classList.add("complete");
   sliderText.textContent = "✅ Game Reset";
   handle.style.left = (slider.offsetWidth - handle.offsetWidth - 5) + "px";
-  vibrate(100); // haptic feedback
+  haptic(100);
 
   setTimeout(() => {
     slider.classList.remove("complete");
