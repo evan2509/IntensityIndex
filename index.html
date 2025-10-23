@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Intensity Index Tracker</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background:#111;
+    color:#fff;
+    text-align:center;
+    margin:0;
+    padding:2rem 1rem;
+  }
+  h1 { font-size:2rem; margin-bottom:0.5rem; }
+  #indexValue { font-size:3rem; font-weight:700; margin:1rem 0 2rem; }
+  .btn {
+    display:block; width:90%; max-width:400px;
+    margin:1rem auto; padding:1.5rem;
+    font-size:1.4rem; border:none; border-radius:1rem;
+    color:#fff; background:#1e88e5;
+  }
+  .btn:active { transform:scale(0.98); }
+  #possessionBtn.active { background:#d32f2f; }
+  .small { font-size:1rem; color:#aaa; margin-top:2rem; line-height:1.6; }
+
+  /* Reset slider styles */
+  .slider-container {
+    position: relative;
+    width: 90%; max-width: 400px;
+    height: 60px;
+    background: #333;
+    border-radius: 50px;
+    margin: 3rem auto 0;
+    overflow: hidden;
+    user-select: none;
+    touch-action: none;
+  }
+  .slider-text {
+    position: absolute;
+    width: 100%;
+    top: 50%; left: 0;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 1.1rem;
+    pointer-events: none;
+    transition: color 0.3s;
+  }
+  .slider-handle {
+    position: absolute;
+    top: 5px; left: 5px;
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: #1e88e5;
+    transition: background 0.3s;
+  }
+  .slider-container.complete {
+    background: #2e7d32; /* green background when reset */
+  }
+  .slider-container.complete .slider-handle {
+    background: #43a047;
+  }
+  .slider-container.complete .slider-text {
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<h1>Intensity Index Tracker</h1>
+<div id="indexValue">0.00</div>
+
+<button id="tacklePlus" class="btn">+1 Tackle</button>
+<button id="tackleMinus" class="btn" style="background:#555;">−1 Tackle</button>
+<button id="possessionBtn" class="btn">Start Opposition Possession</button>
+
+<div class="small">
+  Tackles: <span id="tackleCount">0</span><br>
+  Opposition Possession Time (min): <span id="timeCount">0.00</span>
+</div>
+
+<!-- Reset slider -->
+<div class="slider-container" id="resetSlider">
+  <div class="slider-text" id="sliderText">Slide to Reset</div>
+  <div class="slider-handle" id="sliderHandle"></div>
+</div>
+
+<script>
+let tackles = 0;
+let oppSecondsAccum = 0;
+let oppStartMs = null;
+let possessionActive = false;
+
+const elIndex  = document.getElementById("indexValue");
+const elTackles = document.getElementById("tackleCount");
+const elTime   = document.getElementById("timeCount");
+const btnPos   = document.getElementById("possessionBtn");
+const slider   = document.getElementById("resetSlider");
+const handle   = document.getElementById("sliderHandle");
+const sliderText = document.getElementById("sliderText");
+
+function getCurrentOppSeconds() {
+  if (!possessionActive) return oppSecondsAccum;
+  return oppSecondsAccum + (Date.now() - oppStartMs) / 1000;
+}
+function getOppMinutes() { return getCurrentOppSeconds() / 60; }
+function getIntensity() {
+  const mins = getOppMinutes();
+  return mins > 0 ? tackles / mins : 0;
+}
+function render() {
+  elTackles.textContent = tackles;
+  elTime.textContent = getOppMinutes().toFixed(2);
+  elIndex.textContent = getIntensity().toFixed(2);
+}
+function togglePossession() {
+  if (!possessionActive) {
+    oppStartMs = Date.now();
+    possessionActive = true;
+    btnPos.textContent = "Stop Opposition Possession";
+    btnPos.classList.add("active");
+  } else {
+    oppSecondsAccum += (Date.now() - oppStartMs) / 1000;
+    possessionActive = false;
+    oppStartMs = null;
+    btnPos.textContent = "Start Opposition Possession";
+    btnPos.classList.remove("active");
+    render();
+  }
+}
+document.getElementById("tacklePlus").onclick = () => { tackles++; render(); };
+document.getElementById("tackleMinus").onclick = () => { if (tackles>0) tackles--; render(); };
+btnPos.onclick = togglePossession;
+setInterval(() => { if (possessionActive) render(); }, 250);
+render();
+
+/* ---------- Reset slider logic ---------- */
+let startX = 0, currentX = 0, dragging = false;
+function resetAll() {
+  tackles = 0;
+  oppSecondsAccum = 0;
+  oppStartMs = null;
+  possessionActive = false;
+  btnPos.textContent = "Start Opposition Possession";
+  btnPos.classList.remove("active");
+  render();
+
+  // Show visual confirmation
+  slider.classList.add("complete");
+  sliderText.textContent = "✅ Game Reset";
+  handle.style.left = (slider.offsetWidth - handle.offsetWidth - 5) + "px";
+  
+  // After short delay, revert slider state
+  setTimeout(() => {
+    slider.classList.remove("complete");
+    handle.style.left = "5px";
+    sliderText.textContent = "Slide to Reset";
+  }, 1500);
+}
+function startDrag(e) {
+  dragging = true;
+  startX = e.touches ? e.touches[0].clientX : e.clientX;
+}
+function onDrag(e) {
+  if (!dragging) return;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const dx = clientX - startX;
+  const max = slider.offsetWidth - handle.offsetWidth - 5;
+  currentX = Math.min(Math.max(5, dx + 5), max);
+  handle.style.left = currentX + "px";
+}
+function endDrag() {
+  if (!dragging) return;
+  dragging = false;
+  const max = slider.offsetWidth - handle.offsetWidth - 10;
+  if (currentX >= max - 5) {
+    resetAll();
+  } else {
+    handle.style.left = "5px";
+  }
+}
+handle.addEventListener("mousedown", startDrag);
+handle.addEventListener("touchstart", startDrag);
+window.addEventListener("mousemove", onDrag);
+window.addEventListener("touchmove", onDrag);
+window.addEventListener("mouseup", endDrag);
+window.addEventListener("touchend", endDrag);
+</script>
+</body>
+</html>
