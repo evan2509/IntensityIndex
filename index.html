@@ -2,57 +2,81 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Intensity Index Tracker</title>
 <style>
+  :root {
+    color-scheme: light dark;
+  }
+
   body {
     font-family: system-ui, sans-serif;
-    background:#111;
-    color:#fff;
     text-align:center;
     margin:0;
     padding:2rem 1rem;
+    transition: background 0.3s, color 0.3s;
   }
+
+  /* Light / Dark dynamic backgrounds */
+  @media (prefers-color-scheme: dark) {
+    body { background: linear-gradient(180deg,#111,#222); color:#fff; }
+  }
+  @media (prefers-color-scheme: light) {
+    body { background: linear-gradient(180deg,#e6e6e6,#fafafa); color:#111; }
+  }
+
   h1 { font-size:2rem; margin-bottom:0.5rem; }
   #indexValue { font-size:3.5rem; font-weight:700; margin:1rem 0 2rem; }
 
-  /* Bigger, easier-to-tap buttons */
   .btn {
     display:block;
-    width:95%;
-    max-width:480px;
+    width:95%; max-width:480px;
     margin:1rem auto;
-    padding:2rem;               /* increased tap area */
-    font-size:1.6rem;           /* larger text */
+    padding:2rem;
+    font-size:1.6rem;
     border:none;
     border-radius:1.2rem;
     color:#fff;
     background:#1e88e5;
     box-shadow:0 4px 10px rgba(0,0,0,0.3);
+    transition: background 0.15s, transform 0.1s, filter 0.15s;
   }
-  .btn:active { transform:scale(0.97); }
+  .btn:active {
+    transform:scale(0.97);
+    filter: brightness(1.3);
+  }
   #tackleMinus { background:#444; }
   #possessionBtn.active { background:#d32f2f; }
 
+  /* Flash animation */
+  .flash {
+    animation: flash 0.25s ease-out;
+  }
+  @keyframes flash {
+    0% { filter:brightness(2); }
+    100% { filter:brightness(1); }
+  }
+
   .small {
     font-size:1rem;
-    color:#aaa;
+    color:rgba(170,170,170,0.9);
     margin-top:2rem;
     line-height:1.6;
   }
 
-  /* Reset slider styles */
+  /* Reset slider */
   .slider-container {
     position: relative;
-    width: 95%;
-    max-width: 480px;
-    height: 70px;                /* taller slider */
+    width: 95%; max-width: 480px;
+    height: 70px;
     background: #333;
     border-radius: 50px;
     margin: 3rem auto 0;
     overflow: hidden;
     user-select: none;
     touch-action: none;
+    transition: background 0.3s;
   }
   .slider-text {
     position: absolute;
@@ -67,7 +91,7 @@
   .slider-handle {
     position: absolute;
     top: 5px; left: 5px;
-    width: 60px; height: 60px;   /* larger handle */
+    width: 60px; height: 60px;
     border-radius: 50%;
     background: #1e88e5;
     transition: background 0.3s;
@@ -80,6 +104,12 @@
   }
   .slider-container.complete .slider-text {
     color: #fff;
+  }
+
+  footer {
+    margin-top: 3rem;
+    font-size: 0.85rem;
+    opacity: 0.8;
   }
 </style>
 </head>
@@ -103,6 +133,8 @@
   <div class="slider-handle" id="sliderHandle"></div>
 </div>
 
+<footer>Evan Dunne | Laois GAA</footer>
+
 <script>
 let tackles = 0;
 let oppSecondsAccum = 0;
@@ -116,6 +148,8 @@ const btnPos   = document.getElementById("possessionBtn");
 const slider   = document.getElementById("resetSlider");
 const handle   = document.getElementById("sliderHandle");
 const sliderText = document.getElementById("sliderText");
+
+function vibrate(ms){ if("vibrate" in navigator){ navigator.vibrate(ms); } }
 
 function getCurrentOppSeconds() {
   if (!possessionActive) return oppSecondsAccum;
@@ -146,8 +180,24 @@ function togglePossession() {
     render();
   }
 }
-document.getElementById("tacklePlus").onclick = () => { tackles++; render(); };
-document.getElementById("tackleMinus").onclick = () => { if (tackles>0) tackles--; render(); };
+
+/* --- Flash + vibration for tackle buttons --- */
+function flashButton(btn) {
+  btn.classList.add("flash");
+  setTimeout(()=>btn.classList.remove("flash"),200);
+  vibrate(30);
+}
+
+document.getElementById("tacklePlus").onclick = e => {
+  tackles++;
+  render();
+  flashButton(e.target);
+};
+document.getElementById("tackleMinus").onclick = e => {
+  if (tackles>0) tackles--;
+  render();
+  flashButton(e.target);
+};
 btnPos.onclick = togglePossession;
 setInterval(() => { if (possessionActive) render(); }, 250);
 render();
@@ -166,6 +216,7 @@ function resetAll() {
   slider.classList.add("complete");
   sliderText.textContent = "✅ Game Reset";
   handle.style.left = (slider.offsetWidth - handle.offsetWidth - 5) + "px";
+  vibrate(100); // haptic feedback
 
   setTimeout(() => {
     slider.classList.remove("complete");
@@ -189,11 +240,8 @@ function endDrag() {
   if (!dragging) return;
   dragging = false;
   const max = slider.offsetWidth - handle.offsetWidth - 10;
-  if (currentX >= max - 5) {
-    resetAll();
-  } else {
-    handle.style.left = "5px";
-  }
+  if (currentX >= max - 5) resetAll();
+  else handle.style.left = "5px";
 }
 handle.addEventListener("mousedown", startDrag);
 handle.addEventListener("touchstart", startDrag);
