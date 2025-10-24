@@ -16,19 +16,19 @@
     transition: background 0.3s, color 0.3s;
   }
 
-  /* Light / Dark dynamic backgrounds */
   @media (prefers-color-scheme: dark) {
     body { background: linear-gradient(180deg,#111,#222); color:#fff; }
-    .small { color:#ccc; }
+    .stat-label { color:#ccc; }
   }
   @media (prefers-color-scheme: light) {
     body { background: linear-gradient(180deg,#f0f0f0,#ffffff); color:#111; }
-    .small { color:#333; } /* darker and more readable in light mode */
+    .stat-label { color:#333; }
   }
 
   h1 { font-size:2rem; margin-bottom:0.5rem; }
   #indexValue { font-size:3.5rem; font-weight:700; margin:1rem 0 2rem; }
 
+  /* Button styles */
   .btn {
     display:block;
     width:95%; max-width:480px;
@@ -46,21 +46,41 @@
   #possessionBtn.active { background:#d32f2f; }
   .btn:active {
     transform:scale(0.96);
-    filter: brightness(1.3);
+    filter:brightness(1.3);
   }
 
-  /* Flash + pulse feedback */
+  /* Flash feedback */
   .flash { animation: flash 0.25s ease-out; }
   @keyframes flash {
     0% { filter:brightness(2); transform:scale(1.05); }
     100% { filter:brightness(1); transform:scale(1); }
   }
 
-  .small {
-    font-size:1rem;
+  /* Stats boxes */
+  .stats-container {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:1rem;
     margin-top:2rem;
-    line-height:1.6;
-    transition:color 0.3s;
+    flex-wrap:wrap;
+  }
+  .stat-box {
+    flex:1 1 40%;
+    min-width:150px;
+    max-width:220px;
+    background:#3333;
+    border-radius:1rem;
+    padding:1rem 0;
+    box-shadow:0 3px 8px rgba(0,0,0,0.2);
+  }
+  .stat-label {
+    font-size:1rem;
+    margin-bottom:0.3rem;
+  }
+  .stat-value {
+    font-size:2.4rem;
+    font-weight:700;
   }
 
   /* Reset slider */
@@ -116,15 +136,24 @@
 <h1>Intensity Index Tracker</h1>
 <div id="indexValue">0.00</div>
 
+<!-- Reordered buttons -->
+<button id="possessionBtn" class="btn">Start Opposition Possession</button>
 <button id="tacklePlus" class="btn">+1 Tackle</button>
 <button id="tackleMinus" class="btn">−1 Tackle</button>
-<button id="possessionBtn" class="btn">Start Opposition Possession</button>
 
-<div class="small">
-  Tackles: <span id="tackleCount">0</span><br>
-  Opposition Possession Time (min): <span id="timeCount">0.00</span>
+<!-- Stat display area -->
+<div class="stats-container">
+  <div class="stat-box">
+    <div class="stat-label">Tackles</div>
+    <div class="stat-value" id="tackleCount">0</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Opp Poss Time</div>
+    <div class="stat-value" id="timeDisplay">00:00</div>
+  </div>
 </div>
 
+<!-- Reset slider -->
 <div class="slider-container" id="resetSlider">
   <div class="slider-text" id="sliderText">Slide to Reset</div>
   <div class="slider-handle" id="sliderHandle"></div>
@@ -138,48 +167,59 @@ let oppSecondsAccum = 0;
 let oppStartMs = null;
 let possessionActive = false;
 
-const elIndex  = document.getElementById("indexValue");
+const elIndex = document.getElementById("indexValue");
 const elTackles = document.getElementById("tackleCount");
-const elTime   = document.getElementById("timeCount");
-const btnPos   = document.getElementById("possessionBtn");
-const slider   = document.getElementById("resetSlider");
-const handle   = document.getElementById("sliderHandle");
+const elTimeDisplay = document.getElementById("timeDisplay");
+const btnPos = document.getElementById("possessionBtn");
+const slider = document.getElementById("resetSlider");
+const handle = document.getElementById("sliderHandle");
 const sliderText = document.getElementById("sliderText");
 
-/* Only vibrate on devices that support it (Android etc.) */
-function haptic(ms) {
-  if (navigator.vibrate) {
-    navigator.vibrate(ms);
-  } else {
-    // Safari fallback: brief visual pulse on body
-    document.body.style.transition = "background 0.1s";
-    document.body.style.background = "rgba(255,255,255,0.1)";
+/* Haptic helper */
+function haptic(ms){
+  if(navigator.vibrate) navigator.vibrate(ms);
+  else {
+    document.body.style.transition="background 0.1s";
+    document.body.style.background="rgba(255,255,255,0.1)";
     setTimeout(()=>document.body.style.background="",150);
   }
 }
 
-function getCurrentOppSeconds() {
-  if (!possessionActive) return oppSecondsAccum;
-  return oppSecondsAccum + (Date.now() - oppStartMs) / 1000;
+/* Format MM:SS display */
+function formatTime(seconds){
+  const m = Math.floor(seconds/60);
+  const s = Math.floor(seconds%60);
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
-function getOppMinutes() { return getCurrentOppSeconds() / 60; }
-function getIntensity() {
+
+/* Core calculations */
+function getCurrentOppSeconds(){
+  if(!possessionActive) return oppSecondsAccum;
+  return oppSecondsAccum + (Date.now() - oppStartMs)/1000;
+}
+function getOppMinutes(){ return getCurrentOppSeconds()/60; }
+function getIntensity(){
   const mins = getOppMinutes();
   return mins > 0 ? tackles / mins : 0;
 }
-function render() {
+
+/* Render UI */
+function render(){
   elTackles.textContent = tackles;
-  elTime.textContent = getOppMinutes().toFixed(2);
+  const seconds = getCurrentOppSeconds();
+  elTimeDisplay.textContent = formatTime(seconds);
   elIndex.textContent = getIntensity().toFixed(2);
 }
-function togglePossession() {
-  if (!possessionActive) {
+
+/* Button functions */
+function togglePossession(){
+  if(!possessionActive){
     oppStartMs = Date.now();
     possessionActive = true;
     btnPos.textContent = "Stop Opposition Possession";
     btnPos.classList.add("active");
   } else {
-    oppSecondsAccum += (Date.now() - oppStartMs) / 1000;
+    oppSecondsAccum += (Date.now() - oppStartMs)/1000;
     possessionActive = false;
     oppStartMs = null;
     btnPos.textContent = "Start Opposition Possession";
@@ -188,73 +228,57 @@ function togglePossession() {
   }
 }
 
-function flashButton(btn) {
+function flashButton(btn){
   btn.classList.add("flash");
   setTimeout(()=>btn.classList.remove("flash"),200);
   haptic(30);
 }
 
-document.getElementById("tacklePlus").onclick = e => {
-  tackles++;
-  render();
-  flashButton(e.target);
-};
-document.getElementById("tackleMinus").onclick = e => {
-  if (tackles>0) tackles--;
-  render();
-  flashButton(e.target);
-};
+document.getElementById("tacklePlus").onclick = e => { tackles++; render(); flashButton(e.target); };
+document.getElementById("tackleMinus").onclick = e => { if(tackles>0) tackles--; render(); flashButton(e.target); };
 btnPos.onclick = togglePossession;
-setInterval(() => { if (possessionActive) render(); }, 250);
+
+setInterval(()=>{ if(possessionActive) render(); }, 250);
 render();
 
-/* ---------- Reset slider ---------- */
-let startX = 0, currentX = 0, dragging = false;
-function resetAll() {
-  tackles = 0;
-  oppSecondsAccum = 0;
-  oppStartMs = null;
-  possessionActive = false;
-  btnPos.textContent = "Start Opposition Possession";
+/* Reset slider */
+let startX=0,currentX=0,dragging=false;
+function resetAll(){
+  tackles=0; oppSecondsAccum=0; oppStartMs=null; possessionActive=false;
+  btnPos.textContent="Start Opposition Possession";
   btnPos.classList.remove("active");
   render();
-
   slider.classList.add("complete");
-  sliderText.textContent = "✅ Game Reset";
-  handle.style.left = (slider.offsetWidth - handle.offsetWidth - 5) + "px";
+  sliderText.textContent="✅ Game Reset";
+  handle.style.left=(slider.offsetWidth - handle.offsetWidth -5)+"px";
   haptic(100);
-
-  setTimeout(() => {
+  setTimeout(()=>{
     slider.classList.remove("complete");
-    handle.style.left = "5px";
-    sliderText.textContent = "Slide to Reset";
-  }, 1500);
+    handle.style.left="5px";
+    sliderText.textContent="Slide to Reset";
+  },1500);
 }
-function startDrag(e) {
-  dragging = true;
-  startX = e.touches ? e.touches[0].clientX : e.clientX;
+function startDrag(e){ dragging=true; startX=e.touches?e.touches[0].clientX:e.clientX; }
+function onDrag(e){
+  if(!dragging)return;
+  const clientX=e.touches?e.touches[0].clientX:e.clientX;
+  const dx=clientX-startX;
+  const max=slider.offsetWidth - handle.offsetWidth -5;
+  currentX=Math.min(Math.max(5,dx+5),max);
+  handle.style.left=currentX+"px";
 }
-function onDrag(e) {
-  if (!dragging) return;
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const dx = clientX - startX;
-  const max = slider.offsetWidth - handle.offsetWidth - 5;
-  currentX = Math.min(Math.max(5, dx + 5), max);
-  handle.style.left = currentX + "px";
+function endDrag(){
+  if(!dragging)return; dragging=false;
+  const max=slider.offsetWidth - handle.offsetWidth -10;
+  if(currentX>=max-5) resetAll(); else handle.style.left="5px";
 }
-function endDrag() {
-  if (!dragging) return;
-  dragging = false;
-  const max = slider.offsetWidth - handle.offsetWidth - 10;
-  if (currentX >= max - 5) resetAll();
-  else handle.style.left = "5px";
-}
-handle.addEventListener("mousedown", startDrag);
-handle.addEventListener("touchstart", startDrag);
-window.addEventListener("mousemove", onDrag);
-window.addEventListener("touchmove", onDrag);
-window.addEventListener("mouseup", endDrag);
-window.addEventListener("touchend", endDrag);
+handle.addEventListener("mousedown",startDrag);
+handle.addEventListener("touchstart",startDrag);
+window.addEventListener("mousemove",onDrag);
+window.addEventListener("touchmove",onDrag);
+window.addEventListener("mouseup",endDrag);
+window.addEventListener("touchend",endDrag);
 </script>
 </body>
 </html>
+
