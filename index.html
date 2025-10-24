@@ -273,7 +273,7 @@ function resetAll(){
   slider.classList.add("complete"); sliderText.textContent="✅ Game Reset";
   handle.style.left=(slider.offsetWidth-handle.offsetWidth-5)+"px"; haptic(100);
   setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="5px";
-    sliderText.textContent="Slide to Reset"; },1500);
+    sliderText.textContent="Reset Game"; },1500);
 }
 function startDrag(e){ dragging=true; startX=e.touches?e.touches[0].clientX:e.clientX; }
 function onDrag(e){
