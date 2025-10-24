@@ -199,9 +199,48 @@ function render(){
 }
 function flashButton(btn){ btn.classList.add("flash"); setTimeout(()=>btn.classList.remove("flash"),200); haptic(30); }
 
+/* ------------ Stopwatch + controlled chart logging ------------ */
+let chartLoggingInterval = null;
+let timerInterval = null;
+const LOG_INTERVAL_OPP_SECONDS = 5; // log every 5 s of opposition time
+
+function startLogging() {
+  // start stopwatch ticking every second
+  if (!timerInterval) {
+    timerInterval = setInterval(() => {
+      if (possessionActive) render();
+    }, 1000);
+  }
+
+  // start graph logging every 5 s of opposition possession
+  if (chartLoggingInterval) return;
+  chartLoggingInterval = setInterval(() => {
+    if (!possessionActive) return;
+    const oppSecs = getCurrentOppSeconds();
+    const mins = oppSecs / 60;
+    const intensity = getIntensity();
+    if (mins > 0) {
+      chartData.labels.push(mins.toFixed(2));
+      chartData.datasets[0].data.push(intensity.toFixed(2));
+      if (chartData.labels.length > 100) {
+        chartData.labels.shift();
+        chartData.datasets[0].data.shift();
+      }
+      intensityChart.update();
+    }
+  }, LOG_INTERVAL_OPP_SECONDS * 1000);
+}
+
+function stopLogging() {
+  clearInterval(chartLoggingInterval);
+  chartLoggingInterval = null;
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
 /* ------------ Button handlers ------------ */
-function togglePossession(){
-  if(!possessionActive){
+function togglePossession() {
+  if (!possessionActive) {
     // start timer + start logging
     oppStartMs = Date.now();
     possessionActive = true;
@@ -219,38 +258,10 @@ function togglePossession(){
     render();
   }
 }
-      
+
 document.getElementById("tacklePlus").onclick=e=>{tackles++;render();flashButton(e.target);};
 document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();flashButton(e.target);};
 btnPos.onclick=togglePossession;
-
-/* ------------ Controlled chart logging ------------ */
-let chartLoggingInterval = null;
-const LOG_INTERVAL_MS = 3000; // how often to log while timer active
-
-function startLogging() {
-  if (chartLoggingInterval) return; // already logging
-  chartLoggingInterval = setInterval(() => {
-    if (!possessionActive) return; // only log while active
-    const minutes = getOppMinutes();
-    const intensity = getIntensity();
-    if (minutes > 0) {
-      chartData.labels.push(minutes.toFixed(2));
-      chartData.datasets[0].data.push(intensity.toFixed(2));
-      if (chartData.labels.length > 100) {
-        chartData.labels.shift();
-        chartData.datasets[0].data.shift();
-      }
-      intensityChart.update();
-      render();
-    }
-  }, LOG_INTERVAL_MS);
-}
-
-function stopLogging() {
-  clearInterval(chartLoggingInterval);
-  chartLoggingInterval = null;
-}
 
 /* ------------ Reset slider ------------ */
 let startX=0,currentX=0,dragging=false;
