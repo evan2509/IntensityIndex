@@ -182,7 +182,7 @@ function getIntensity(){
 const ctx=document.getElementById('intensityChart').getContext('2d');
 const chartData={ labels:[], datasets:[{ label:'Intensity Index',
   data:[], borderColor:'#1e88e5', backgroundColor:'rgba(30,136,229,0.15)',
-  borderWidth:2, fill:true, tension:0.3 }]};
+  borderWidth:2, fill:true, tension:0.3, spanGaps:false }]};
 const intensityChart=new Chart(ctx,{
   type:'line', data:chartData,
   options:{ responsive:true, maintainAspectRatio:false,
@@ -199,27 +199,24 @@ function render(){
 }
 function flashButton(btn){ btn.classList.add("flash"); setTimeout(()=>btn.classList.remove("flash"),200); haptic(30); }
 
-/* ------------ Stopwatch + controlled chart logging ------------ */
-let chartLoggingInterval = null;
+/* ------------ Stopwatch + precise 5s logging ------------ */
 let timerInterval = null;
-const LOG_INTERVAL_OPP_SECONDS = 5; // log every 5 s of opposition time
+let nextLogThreshold = 5; // next time (in seconds) at which to log
+const LOG_INTERVAL_OPP_SECONDS = 5; // structured 5-second intervals
 
 function startLogging() {
-  // start stopwatch ticking every second
-  if (!timerInterval) {
-    timerInterval = setInterval(() => {
-      if (possessionActive) render();
-    }, 1000);
-  }
-
-  // start graph logging every 5 s of opposition possession
-  if (chartLoggingInterval) return;
-  chartLoggingInterval = setInterval(() => {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
     if (!possessionActive) return;
+
+    render(); // update timer display every second
+
     const oppSecs = getCurrentOppSeconds();
-    const mins = oppSecs / 60;
-    const intensity = getIntensity();
-    if (mins > 0) {
+
+    // If we've passed the next 5-second mark, log to graph
+    if (oppSecs >= nextLogThreshold) {
+      const mins = oppSecs / 60;
+      const intensity = getIntensity();
       chartData.labels.push(mins.toFixed(2));
       chartData.datasets[0].data.push(intensity.toFixed(2));
       if (chartData.labels.length > 100) {
@@ -227,13 +224,12 @@ function startLogging() {
         chartData.datasets[0].data.shift();
       }
       intensityChart.update();
+      nextLogThreshold += LOG_INTERVAL_OPP_SECONDS; // move to next threshold
     }
-  }, LOG_INTERVAL_OPP_SECONDS * 1000);
+  }, 1000); // update every second
 }
 
 function stopLogging() {
-  clearInterval(chartLoggingInterval);
-  chartLoggingInterval = null;
   clearInterval(timerInterval);
   timerInterval = null;
 }
@@ -267,13 +263,14 @@ btnPos.onclick=togglePossession;
 let startX=0,currentX=0,dragging=false;
 function resetAll(){
   tackles=0; oppSecondsAccum=0; oppStartMs=null; possessionActive=false;
+  nextLogThreshold = LOG_INTERVAL_OPP_SECONDS; // reset threshold
   chartData.labels=[]; chartData.datasets[0].data=[]; intensityChart.update();
   btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
   render();
   slider.classList.add("complete"); sliderText.textContent="✅ Game Reset";
   handle.style.left=(slider.offsetWidth-handle.offsetWidth-5)+"px"; haptic(100);
   setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="5px";
-    sliderText.textContent="Reset Game"; },1500);
+    sliderText.textContent="Slide to Reset"; },1500);
 }
 function startDrag(e){ dragging=true; startX=e.touches?e.touches[0].clientX:e.clientX; }
 function onDrag(e){
@@ -300,3 +297,4 @@ render();
 </script>
 </body>
 </html>
+
