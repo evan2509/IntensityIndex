@@ -202,30 +202,55 @@ function flashButton(btn){ btn.classList.add("flash"); setTimeout(()=>btn.classL
 /* ------------ Button handlers ------------ */
 function togglePossession(){
   if(!possessionActive){
-    oppStartMs=Date.now(); possessionActive=true;
-    btnPos.textContent="Stop Opposition Possession"; btnPos.classList.add("active");
-  }else{
-    oppSecondsAccum+=(Date.now()-oppStartMs)/1000; possessionActive=false; oppStartMs=null;
-    btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active"); render();
+    // start timer + start logging
+    oppStartMs = Date.now();
+    possessionActive = true;
+    btnPos.textContent = "Stop Opposition Possession";
+    btnPos.classList.add("active");
+    startLogging();
+  } else {
+    // stop timer + stop logging
+    oppSecondsAccum += (Date.now() - oppStartMs) / 1000;
+    possessionActive = false;
+    oppStartMs = null;
+    btnPos.textContent = "Start Opposition Possession";
+    btnPos.classList.remove("active");
+    stopLogging();
+    render();
   }
 }
+      
 document.getElementById("tacklePlus").onclick=e=>{tackles++;render();flashButton(e.target);};
 document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();flashButton(e.target);};
 btnPos.onclick=togglePossession;
 
-/* ------------ Chart update ------------ */
-setInterval(()=>{
-  if(possessionActive||tackles>0){
-    const minutes=getOppMinutes(), intensity=getIntensity();
-    if(minutes>0){
+/* ------------ Controlled chart logging ------------ */
+let chartLoggingInterval = null;
+const LOG_INTERVAL_MS = 3000; // how often to log while timer active
+
+function startLogging() {
+  if (chartLoggingInterval) return; // already logging
+  chartLoggingInterval = setInterval(() => {
+    if (!possessionActive) return; // only log while active
+    const minutes = getOppMinutes();
+    const intensity = getIntensity();
+    if (minutes > 0) {
       chartData.labels.push(minutes.toFixed(2));
       chartData.datasets[0].data.push(intensity.toFixed(2));
-      if(chartData.labels.length>100){ chartData.labels.shift(); chartData.datasets[0].data.shift(); }
+      if (chartData.labels.length > 100) {
+        chartData.labels.shift();
+        chartData.datasets[0].data.shift();
+      }
       intensityChart.update();
+      render();
     }
-  }
-  if(possessionActive) render();
-}, 3000);
+  }, LOG_INTERVAL_MS);
+}
+
+function stopLogging() {
+  clearInterval(chartLoggingInterval);
+  chartLoggingInterval = null;
+}
 
 /* ------------ Reset slider ------------ */
 let startX=0,currentX=0,dragging=false;
