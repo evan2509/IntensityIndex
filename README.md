@@ -1,1 +1,1 @@
-Mobile & deskopt versions working fine. Graph still displaying underneath reset in mobile view.
+Mobile view and desktop view working. Alignment issues solved.
