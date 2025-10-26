@@ -73,10 +73,10 @@ h1{font-size:2rem;margin:.25rem 0 .25rem;text-align:center;}
 
 /* -------- Shortcut info -------- */
 #shortcutInfo {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   text-align: center;
   opacity: 0.75;
-  margin: 0 0 1.2rem;
+  margin: 1rem 0 0.5rem;
 }
 @media (prefers-color-scheme: dark) {
   #shortcutInfo { color: #ccc; }
@@ -207,11 +207,6 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
   <aside class="left">
     <h1>Intensity Index Tracker</h1>
     <div id="indexValue">0.00</div>
-    <p id="shortcutInfo">
-      <strong>Space</strong> = Start/Stop Poss,
-      <strong>T</strong> = +1 Tackle,
-      <strong>R</strong> = −1 Tackle
-    </p>
 
     <div class="stack">
       <button id="possessionBtn" class="btn">Start Opposition Possession</button>
@@ -236,6 +231,12 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
       <div class="slider-text" id="sliderText">Slide to Reset</div>
       <div class="slider-handle" id="sliderHandle"></div>
     </div>
+
+    <p id="shortcutInfo">
+      ⌨️ Shortcuts: <strong>Space</strong> = Start/Stop Poss |
+      <strong>T</strong> = +1 Tackle |
+      <strong>R</strong> = −1 Tackle
+    </p>
 
     <footer>Evan Dunne | Laois GAA</footer>
   </aside>
@@ -348,7 +349,7 @@ document.getElementById("reportBtn").addEventListener("click", async () => {
   const now=new Date();
   const ts=now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})+" – "+now.toLocaleDateString();
   c2.font="16px Arial"; c2.fillText(ts,40,80);
-  c2.font="22px Arial";
+  c2.font("22px Arial");
   c2.fillText("Intensity Index Rating: "+getIntensity().toFixed(2),40,120);
   c2.fillText("Tackles: "+tackles,40,155);
   c2.fillText("Opposition Possession Time: "+formatTime(getCurrentOppSeconds()),40,190);
@@ -393,7 +394,7 @@ window.addEventListener("touchmove",onDrag);
 window.addEventListener("mouseup",endDrag);
 window.addEventListener("touchend",endDrag);
 
-/* -------- MOBILE GRAPH REPOSITIONING (FINAL FIX) -------- */
+/* -------- MOBILE GRAPH REPOSITIONING -------- */
 document.addEventListener("DOMContentLoaded", () => {
   const left = document.querySelector(".left");
   const right = document.querySelector(".right");
@@ -403,7 +404,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function repositionGraph() {
     const isMobile = window.innerWidth < 1024;
     const graphParent = graph.parentElement;
-
     if (isMobile && graphParent !== left) {
       left.insertBefore(graph, reportBtn);
     } else if (!isMobile && graphParent !== right) {
@@ -418,7 +418,6 @@ document.addEventListener("DOMContentLoaded", () => {
 /* -------- KEYBOARD SHORTCUTS -------- */
 document.addEventListener("keydown", (e) => {
   if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
-
   switch (e.key.toLowerCase()) {
     case " ":
     case "spacebar":
