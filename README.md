@@ -1,1 +1,2 @@
-Mobile view and desktop view working. Alignment issues solved.
+Keyboard shortcuts added and text for keyboard shortcuts too. 
+Generate report button stopped working. 
