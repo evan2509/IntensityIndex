@@ -171,27 +171,56 @@ function getIntensity(){
 
 /* ------------ Chart.js setup ------------ */
 const ctx=document.getElementById('intensityChart').getContext('2d');
-const chartData={ labels:[], datasets:[{ label:'Intensity Index',
-  data:[], borderColor:'#1e88e5', backgroundColor:'rgba(30,136,229,0.15)',
-  borderWidth:2, fill:true, tension:0.3, spanGaps:false }]};
+const chartData={ labels:[], datasets:[{ 
+  label:'Intensity Index',
+  data:[],
+  borderColor:'#1e88e5',
+  backgroundColor:'rgba(30,136,229,0.15)',
+  borderWidth:2,
+  fill:true,
+  tension:0.3,
+  spanGaps:false,
+  pointRadius:(ctx) => {
+    // Dynamically hide some points when too many exist
+    const total = ctx.chart.data.labels.length;
+    if (total <= 20) return 5;         // show all dots when few
+    else if (total <= 60) return (ctx.dataIndex % 3 === 0 ? 4 : 0); // ~15s
+    else if (total <= 120) return (ctx.dataIndex % 6 === 0 ? 3 : 0); // ~30s
+    else return 0;                     // hide all dots if very dense
+  },
+  pointHoverRadius:6,
+  pointBackgroundColor:'#1e88e5',
+  pointBorderColor:'#fff'
+}]};
+
 const intensityChart=new Chart(ctx,{
-  type:'line', data:chartData,
-  options:{ responsive:true, maintainAspectRatio:false,
-    scales:{ 
+  type:'line',
+  data:chartData,
+  options:{
+    responsive:true,
+    maintainAspectRatio:false,
+    scales:{
       x:{
         title:{display:true,text:'Opp Poss Time (MM:SS)'},
         ticks:{
+          autoSkip:true,
+          maxTicksLimit:10,
           callback:(val,index,ticks)=>{
-            const totalSecs = parseFloat(chartData.labels[index]);
+            const totalSecs=parseFloat(chartData.labels[index]);
             const m=Math.floor(totalSecs/60);
             const s=Math.floor(totalSecs%60);
             return `${m}:${String(s).padStart(2,'0')}`;
           }
         }
       },
-      y:{ title:{display:true,text:'Intensity Index'}, beginAtZero:true }
+      y:{
+        title:{display:true,text:'Intensity Index'},
+        beginAtZero:true
+      }
     },
-    plugins:{ legend:{display:false} } }});
+    plugins:{ legend:{display:false} }
+  }
+});
 
 /* ------------ Rendering ------------ */
 function render(){
