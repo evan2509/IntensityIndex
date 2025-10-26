@@ -113,8 +113,8 @@ h1{font-size:2rem;margin:.25rem 0 .25rem;text-align:center;}
 #graphWrapper {
   width: 95%;
   max-width: 480px;
-  margin: 1.5rem auto 0;  /* ✅ ensures it appears right after stats on mobile */
-  order: 3; /* keeps correct stacking order on mobile */
+  margin: 1.5rem auto 0;
+  order: 3;
 }
 canvas {
   width: 100%;
@@ -126,11 +126,19 @@ canvas {
   #graphWrapper {
     width: 100%;
     max-width: none;
-    margin-top: 2cm; /* ✅ lowers graph on laptop view only */
-    order: initial;  /* remove mobile stacking rule */
+    margin-top: 2cm;
+    order: initial;
   }
   .right canvas {
     height: calc(100vh - 160px) !important;
+  }
+}
+
+/* Extra spacing when graph moves into mobile column */
+@media (max-width:1023px){
+  #graphWrapper {
+    margin-top: 1.2rem;
+    margin-bottom: 1.2rem;
   }
 }
 
@@ -178,7 +186,7 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
 <body>
 
 <div class="app">
-  <!-- LEFT COLUMN: everything stacked at identical width -->
+  <!-- LEFT COLUMN -->
   <aside class="left">
     <h1>Intensity Index Tracker</h1>
     <div id="indexValue">0.00</div>
@@ -210,7 +218,7 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
     <footer>Evan Dunne | Laois GAA</footer>
   </aside>
 
-  <!-- RIGHT COLUMN: graph -->
+  <!-- RIGHT COLUMN -->
   <main class="right">
     <div id="graphWrapper">
       <canvas id="intensityChart"></canvas>
@@ -219,7 +227,7 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
 </div>
 
 <script>
-/* ------------------------ YOUR EXISTING WORKING JS ------------------------ */
+/* ------------------------ EXISTING JS ------------------------ */
 let tackles=0, oppSecondsAccum=0, oppStartMs=null, possessionActive=false;
 const elIndex=document.getElementById("indexValue"),
       elTackles=document.getElementById("tackleCount"),
@@ -362,6 +370,24 @@ window.addEventListener("mousemove",onDrag);
 window.addEventListener("touchmove",onDrag);
 window.addEventListener("mouseup",endDrag);
 window.addEventListener("touchend",endDrag);
+
+/* -------- MOBILE GRAPH REPOSITIONING -------- */
+function repositionGraph() {
+  const left = document.querySelector(".left");
+  const right = document.querySelector(".right");
+  const graph = document.getElementById("graphWrapper");
+  const reportBtn = document.getElementById("reportBtn");
+
+  if (window.innerWidth < 1024) {
+    // Move below stats but before report button
+    if (!left.contains(graph)) left.insertBefore(graph, reportBtn);
+  } else {
+    // Restore to right column
+    if (!right.contains(graph)) right.appendChild(graph);
+  }
+}
+window.addEventListener("load", repositionGraph);
+window.addEventListener("resize", repositionGraph);
 
 render();
 </script>
