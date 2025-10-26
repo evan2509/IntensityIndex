@@ -58,7 +58,7 @@ body{
     padding:2rem;
   }
   .left{
-    max-width:440px; /* fixed visual column */
+    max-width:440px;
     position:sticky; top:16px;
   }
   .right{
@@ -70,7 +70,7 @@ body{
 h1{font-size:2rem;margin:.25rem 0 .25rem;text-align:center;}
 #indexValue{font-size:3.6rem;font-weight:800;margin:.6rem 0 1.2rem;text-align:center;}
 
-/* -------- Buttons (identical width) -------- */
+/* -------- Buttons -------- */
 .stack > *{width:100%; box-sizing:border-box;}
 .stack{width:100%;}
 .btn{
@@ -114,7 +114,6 @@ h1{font-size:2rem;margin:.25rem 0 .25rem;text-align:center;}
   width: 95%;
   max-width: 480px;
   margin: 1.5rem auto 0;
-  order: 3;
 }
 canvas {
   width: 100%;
@@ -127,7 +126,6 @@ canvas {
     width: 100%;
     max-width: none;
     margin-top: 2cm;
-    order: initial;
   }
   .right canvas {
     height: calc(100vh - 160px) !important;
@@ -142,7 +140,7 @@ canvas {
   }
 }
 
-/* -------- Report + Reset (kept under left) -------- */
+/* -------- Report + Reset -------- */
 #reportBtn{
   width:100%;
   margin:1rem 0 .6rem;
@@ -371,23 +369,27 @@ window.addEventListener("touchmove",onDrag);
 window.addEventListener("mouseup",endDrag);
 window.addEventListener("touchend",endDrag);
 
-/* -------- MOBILE GRAPH REPOSITIONING -------- */
-function repositionGraph() {
+/* -------- MOBILE GRAPH REPOSITIONING (FINAL FIX) -------- */
+document.addEventListener("DOMContentLoaded", () => {
   const left = document.querySelector(".left");
   const right = document.querySelector(".right");
   const graph = document.getElementById("graphWrapper");
   const reportBtn = document.getElementById("reportBtn");
 
-  if (window.innerWidth < 1024) {
-    // Move below stats but before report button
-    if (!left.contains(graph)) left.insertBefore(graph, reportBtn);
-  } else {
-    // Restore to right column
-    if (!right.contains(graph)) right.appendChild(graph);
+  function repositionGraph() {
+    const isMobile = window.innerWidth < 1024;
+    const graphParent = graph.parentElement;
+
+    if (isMobile && graphParent !== left) {
+      left.insertBefore(graph, reportBtn);
+    } else if (!isMobile && graphParent !== right) {
+      right.appendChild(graph);
+    }
   }
-}
-window.addEventListener("load", repositionGraph);
-window.addEventListener("resize", repositionGraph);
+
+  repositionGraph();
+  window.addEventListener("resize", repositionGraph);
+});
 
 render();
 </script>
