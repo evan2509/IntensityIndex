@@ -6,8 +6,9 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Intensity Index Tracker</title>
 
-<!-- Chart.js CDN -->
+<!-- Chart.js + html2canvas -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
   :root { color-scheme: light dark; }
@@ -70,6 +71,16 @@
   }
   canvas { width:100%; height:260px !important; }
 
+  #reportBtn {
+    width:95%; max-width:480px;
+    margin:1rem auto 2rem;
+    padding:1.5rem;
+    font-size:1.4rem;
+    border:none; border-radius:1rem;
+    color:#fff; background:#2e7d32;
+    box-shadow:0 3px 10px rgba(0,0,0,0.3);
+  }
+
   .slider-container {
     position: relative;
     width: 95%; max-width: 480px;
@@ -130,6 +141,9 @@
   <canvas id="intensityChart"></canvas>
 </div>
 
+<!-- Report button -->
+<button id="reportBtn">Generate Report (PNG)</button>
+
 <div class="slider-container" id="resetSlider">
   <div class="slider-text" id="sliderText">Slide to Reset</div>
   <div class="slider-handle" id="sliderHandle"></div>
@@ -138,27 +152,12 @@
 <footer>Evan Dunne | Laois GAA</footer>
 
 <script>
-/* ------------ Core variables ------------ */
 let tackles=0, oppSecondsAccum=0, oppStartMs=null, possessionActive=false;
 const elIndex=document.getElementById("indexValue"),
       elTackles=document.getElementById("tackleCount"),
       elTimeDisplay=document.getElementById("timeDisplay"),
-      btnPos=document.getElementById("possessionBtn"),
-      slider=document.getElementById("resetSlider"),
-      handle=document.getElementById("sliderHandle"),
-      sliderText=document.getElementById("sliderText");
+      btnPos=document.getElementById("possessionBtn");
 
-/* ------------ Haptic feedback ------------ */
-function haptic(ms){
-  if(navigator.vibrate) navigator.vibrate(ms);
-  else {
-    document.body.style.transition="background 0.1s";
-    document.body.style.background="rgba(255,255,255,0.1)";
-    setTimeout(()=>document.body.style.background="",150);
-  }
-}
-
-/* ------------ Time helpers ------------ */
 function formatTime(seconds){
   const m=Math.floor(seconds/60), s=Math.floor(seconds%60);
   return `${String(m).padStart(1,'0')}:${String(s).padStart(2,'0')}`;
@@ -169,7 +168,6 @@ function getIntensity(){
   return mins>0?tackles/mins:0;
 }
 
-/* ------------ Chart.js setup ------------ */
 const ctx=document.getElementById('intensityChart').getContext('2d');
 const chartData={ labels:[], datasets:[{ 
   label:'Intensity Index',
@@ -181,12 +179,11 @@ const chartData={ labels:[], datasets:[{
   tension:0.3,
   spanGaps:false,
   pointRadius:(ctx) => {
-    // Dynamically hide some points when too many exist
     const total = ctx.chart.data.labels.length;
-    if (total <= 20) return 5;         // show all dots when few
-    else if (total <= 60) return (ctx.dataIndex % 3 === 0 ? 4 : 0); // ~15s
-    else if (total <= 120) return (ctx.dataIndex % 6 === 0 ? 3 : 0); // ~30s
-    else return 0;                     // hide all dots if very dense
+    if (total <= 20) return 5;
+    else if (total <= 60) return (ctx.dataIndex % 3 === 0 ? 4 : 0);
+    else if (total <= 120) return (ctx.dataIndex % 6 === 0 ? 3 : 0);
+    else return 0;
   },
   pointHoverRadius:6,
   pointBackgroundColor:'#1e88e5',
@@ -222,16 +219,13 @@ const intensityChart=new Chart(ctx,{
   }
 });
 
-/* ------------ Rendering ------------ */
 function render(){
   elTackles.textContent=tackles;
   const seconds=getCurrentOppSeconds();
   elTimeDisplay.textContent=formatTime(seconds);
   elIndex.textContent=getIntensity().toFixed(2);
 }
-function flashButton(btn){ btn.classList.add("flash"); setTimeout(()=>btn.classList.remove("flash"),200); haptic(30); }
 
-/* ------------ Stopwatch + precise 5s logging ------------ */
 let timerInterval = null;
 let nextLogThreshold = 5;
 const LOG_INTERVAL_OPP_SECONDS = 5;
@@ -240,14 +234,11 @@ function startLogging() {
   if (timerInterval) return;
   timerInterval = setInterval(() => {
     if (!possessionActive) return;
-
     render();
-
     const oppSecs = getCurrentOppSeconds();
-
     if (oppSecs >= nextLogThreshold) {
       const intensity = getIntensity();
-      chartData.labels.push(oppSecs.toFixed(0)); // store raw seconds
+      chartData.labels.push(oppSecs.toFixed(0));
       chartData.datasets[0].data.push(intensity.toFixed(2));
       if (chartData.labels.length > 100) {
         chartData.labels.shift();
@@ -264,7 +255,6 @@ function stopLogging() {
   timerInterval = null;
 }
 
-/* ------------ Button handlers ------------ */
 function togglePossession() {
   if (!possessionActive) {
     oppStartMs = Date.now();
@@ -282,13 +272,59 @@ function togglePossession() {
     render();
   }
 }
-
-document.getElementById("tacklePlus").onclick=e=>{tackles++;render();flashButton(e.target);};
-document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();flashButton(e.target);};
+document.getElementById("tacklePlus").onclick=e=>{tackles++;render();};
+document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();};
 btnPos.onclick=togglePossession;
+
+/* ------------ Generate PNG Report ------------ */
+document.getElementById("reportBtn").addEventListener("click", async () => {
+  const reportCanvas = document.createElement("canvas");
+  reportCanvas.width = 1000;
+  reportCanvas.height = 750;
+  const ctx2 = reportCanvas.getContext("2d");
+
+  // Background
+  ctx2.fillStyle = "#fff";
+  ctx2.fillRect(0, 0, reportCanvas.width, reportCanvas.height);
+
+  // Title
+  ctx2.fillStyle = "#000";
+  ctx2.font = "28px Arial";
+  ctx2.fillText("Laois Intensity Report", 40, 50);
+
+  // Timestamp
+  const now = new Date();
+  const timestamp = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) +
+                    " – " + now.toLocaleDateString();
+  ctx2.font = "16px Arial";
+  ctx2.fillText(timestamp, 40, 80);
+
+  // Stats
+  ctx2.font = "22px Arial";
+  ctx2.fillText("Current Intensity Index: " + getIntensity().toFixed(2), 40, 120);
+  ctx2.fillText("Tackles: " + tackles, 40, 155);
+  ctx2.fillText("Opposition Possession Time: " + formatTime(getCurrentOppSeconds()), 40, 190);
+
+  // Capture chart
+  const chartCanvas = document.getElementById("intensityChart");
+  const chartImage = chartCanvas.toDataURL("image/png");
+  const img = new Image();
+  img.src = chartImage;
+  await new Promise(res => img.onload = res);
+  ctx2.drawImage(img, 40, 220, 920, 480);
+
+  // Download
+  const link = document.createElement("a");
+  link.download = "Laois_Intensity_Report.png";
+  link.href = reportCanvas.toDataURL("image/png");
+  link.click();
+});
 
 /* ------------ Reset slider ------------ */
 let startX=0,currentX=0,dragging=false;
+const slider=document.getElementById("resetSlider"),
+      handle=document.getElementById("sliderHandle"),
+      sliderText=document.getElementById("sliderText");
 function resetAll(){
   tackles=0; oppSecondsAccum=0; oppStartMs=null; possessionActive=false;
   nextLogThreshold = LOG_INTERVAL_OPP_SECONDS;
@@ -296,7 +332,7 @@ function resetAll(){
   btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
   render();
   slider.classList.add("complete"); sliderText.textContent="✅ Game Reset";
-  handle.style.left=(slider.offsetWidth-handle.offsetWidth-5)+"px"; haptic(100);
+  handle.style.left=(slider.offsetWidth-handle.offsetWidth-5)+"px";
   setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="5px";
     sliderText.textContent="Slide to Reset"; },1500);
 }
