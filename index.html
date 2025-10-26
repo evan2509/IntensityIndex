@@ -142,7 +142,7 @@
 </div>
 
 <!-- Report button -->
-<button id="reportBtn">Generate Report (PNG)</button>
+<button id="reportBtn">Generate Report</button>
 
 <div class="slider-container" id="resetSlider">
   <div class="slider-text" id="sliderText">Slide to Reset</div>
@@ -290,7 +290,7 @@ document.getElementById("reportBtn").addEventListener("click", async () => {
   // Title
   ctx2.fillStyle = "#000";
   ctx2.font = "28px Arial";
-  ctx2.fillText("Laois Intensity Report", 40, 50);
+  ctx2.fillText("Laois Intensity Index Report", 40, 50);
 
   // Timestamp
   const now = new Date();
@@ -301,7 +301,7 @@ document.getElementById("reportBtn").addEventListener("click", async () => {
 
   // Stats
   ctx2.font = "22px Arial";
-  ctx2.fillText("Current Intensity Index: " + getIntensity().toFixed(2), 40, 120);
+  ctx2.fillText("Intensity Index Rating: " + getIntensity().toFixed(2), 40, 120);
   ctx2.fillText("Tackles: " + tackles, 40, 155);
   ctx2.fillText("Opposition Possession Time: " + formatTime(getCurrentOppSeconds()), 40, 190);
 
