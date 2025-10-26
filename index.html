@@ -69,7 +69,25 @@ body{
 
 /* -------- Heading / index -------- */
 h1{font-size:2rem;margin:.25rem 0 .25rem;text-align:center;}
-#indexValue{font-size:3.6rem;font-weight:800;margin:.6rem 0 1.2rem;text-align:center;}
+#indexValue{font-size:3.6rem;font-weight:800;margin:.6rem 0 1rem;text-align:center;}
+
+/* -------- Shortcut info -------- */
+#shortcutInfo {
+  font-size: 0.95rem;
+  text-align: center;
+  opacity: 0.75;
+  margin: 0 0 1.2rem;
+}
+@media (prefers-color-scheme: dark) {
+  #shortcutInfo { color: #ccc; }
+}
+@media (prefers-color-scheme: light) {
+  #shortcutInfo { color: #444; }
+}
+/* Hide on mobile (no keyboard use) */
+@media (max-width:1023px){
+  #shortcutInfo { display: none; }
+}
 
 /* -------- Buttons -------- */
 .stack > *{width:100%; box-sizing:border-box;}
@@ -189,6 +207,12 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
   <aside class="left">
     <h1>Intensity Index Tracker</h1>
     <div id="indexValue">0.00</div>
+    <p id="shortcutInfo">
+      ⌨️ Keyboard Shortcuts:
+      <strong>Space</strong> = Start/Stop Possession,
+      <strong>T</strong> = +1 Tackle,
+      <strong>R</strong> = −1 Tackle
+    </p>
 
     <div class="stack">
       <button id="possessionBtn" class="btn">Start Opposition Possession</button>
@@ -394,20 +418,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* -------- KEYBOARD SHORTCUTS -------- */
 document.addEventListener("keydown", (e) => {
-  // ignore if user is typing in an input field
   if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
 
   switch (e.key.toLowerCase()) {
-    case " ": // Spacebar → start/stop possession
-    case "spacebar": // Safari fallback
-      e.preventDefault(); // stop page from scrolling
+    case " ":
+    case "spacebar":
+      e.preventDefault();
       btnPos.click();
       break;
-    case "t": // +1 tackle
+    case "t":
       e.preventDefault();
       document.getElementById("tacklePlus").click();
       break;
-    case "r": // −1 tackle
+    case "r":
       e.preventDefault();
       document.getElementById("tackleMinus").click();
       break;
@@ -415,7 +438,6 @@ document.addEventListener("keydown", (e) => {
 });
 
 render();
-
 </script>
 </body>
 </html>
