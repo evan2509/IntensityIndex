@@ -250,7 +250,7 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
 </div>
 
 <script>
-/* ------------------------ EXISTING JS ------------------------ */
+/* ------------------------ JS LOGIC ------------------------ */
 let tackles=0, oppSecondsAccum=0, oppStartMs=null, possessionActive=false;
 const elIndex=document.getElementById("indexValue"),
       elTackles=document.getElementById("tackleCount"),
@@ -267,6 +267,7 @@ function getIntensity(){
   return mins>0?tackles/mins:0;
 }
 
+/* -------- Chart.js Setup -------- */
 const ctx=document.getElementById('intensityChart').getContext('2d');
 const chartData={ labels:[], datasets:[{ 
   label:'Intensity Index',
@@ -339,27 +340,48 @@ document.getElementById("tacklePlus").onclick=e=>{tackles++;render();e.target.cl
 document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();e.target.classList.add('flash');setTimeout(()=>e.target.classList.remove('flash'),200);};
 btnPos.onclick=togglePossession;
 
-/* Generate PNG Report */
+/* -------- Generate PNG Report (Fixed) -------- */
 document.getElementById("reportBtn").addEventListener("click", async () => {
   const reportCanvas=document.createElement("canvas");
   reportCanvas.width=1000; reportCanvas.height=750;
   const c2=reportCanvas.getContext("2d");
-  c2.fillStyle="#fff"; c2.fillRect(0,0,reportCanvas.width,reportCanvas.height);
-  c2.fillStyle="#000"; c2.font="28px Arial"; c2.fillText("Laois Intensity Index Report",40,50);
+
+  // Background
+  c2.fillStyle="#fff";
+  c2.fillRect(0,0,reportCanvas.width,reportCanvas.height);
+
+  // Header
+  c2.fillStyle="#000";
+  c2.font="28px Arial";
+  c2.fillText("Laois Intensity Index Report",40,50);
+
+  // Timestamp
   const now=new Date();
   const ts=now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})+" – "+now.toLocaleDateString();
-  c2.font="16px Arial"; c2.fillText(ts,40,80);
-  c2.font("22px Arial");
+  c2.font="16px Arial";
+  c2.fillText(ts,40,80);
+
+  // Stats
+  c2.font="22px Arial"; // ✅ FIXED LINE
   c2.fillText("Intensity Index Rating: "+getIntensity().toFixed(2),40,120);
   c2.fillText("Tackles: "+tackles,40,155);
   c2.fillText("Opposition Possession Time: "+formatTime(getCurrentOppSeconds()),40,190);
+
+  // Chart snapshot
   const chartCanvas=document.getElementById("intensityChart");
-  const img=new Image(); img.src=chartCanvas.toDataURL("image/png"); await new Promise(r=>img.onload=r);
+  const img=new Image();
+  img.src=chartCanvas.toDataURL("image/png");
+  await new Promise((resolve)=>{img.onload=resolve; img.onerror=resolve;});
   c2.drawImage(img,40,220,920,480);
-  const a=document.createElement("a"); a.download="Laois_Intensity_Report.png"; a.href=reportCanvas.toDataURL("image/png"); a.click();
+
+  // Download
+  const a=document.createElement("a");
+  a.download="Laois_Intensity_Report.png";
+  a.href=reportCanvas.toDataURL("image/png");
+  a.click();
 });
 
-/* Reset slider */
+/* -------- Reset slider -------- */
 let startX=0,currentX=0,dragging=false;
 const slider=document.getElementById("resetSlider"),
       handle=document.getElementById("sliderHandle"),
@@ -396,29 +418,28 @@ window.addEventListener("touchend",endDrag);
 
 /* -------- MOBILE GRAPH REPOSITIONING -------- */
 document.addEventListener("DOMContentLoaded", () => {
-  const left = document.querySelector(".left");
-  const right = document.querySelector(".right");
-  const graph = document.getElementById("graphWrapper");
-  const reportBtn = document.getElementById("reportBtn");
+  const left=document.querySelector(".left");
+  const right=document.querySelector(".right");
+  const graph=document.getElementById("graphWrapper");
+  const reportBtn=document.getElementById("reportBtn");
 
-  function repositionGraph() {
-    const isMobile = window.innerWidth < 1024;
-    const graphParent = graph.parentElement;
-    if (isMobile && graphParent !== left) {
-      left.insertBefore(graph, reportBtn);
-    } else if (!isMobile && graphParent !== right) {
+  function repositionGraph(){
+    const isMobile=window.innerWidth<1024;
+    const graphParent=graph.parentElement;
+    if(isMobile && graphParent!==left){
+      left.insertBefore(graph,reportBtn);
+    }else if(!isMobile && graphParent!==right){
       right.appendChild(graph);
     }
   }
-
   repositionGraph();
-  window.addEventListener("resize", repositionGraph);
+  window.addEventListener("resize",repositionGraph);
 });
 
 /* -------- KEYBOARD SHORTCUTS -------- */
-document.addEventListener("keydown", (e) => {
-  if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
-  switch (e.key.toLowerCase()) {
+document.addEventListener("keydown",(e)=>{
+  if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
+  switch(e.key.toLowerCase()){
     case " ":
     case "spacebar":
       e.preventDefault();
