@@ -392,7 +392,30 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", repositionGraph);
 });
 
+/* -------- KEYBOARD SHORTCUTS -------- */
+document.addEventListener("keydown", (e) => {
+  // ignore if user is typing in an input field
+  if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+
+  switch (e.key.toLowerCase()) {
+    case " ": // Spacebar → start/stop possession
+    case "spacebar": // Safari fallback
+      e.preventDefault(); // stop page from scrolling
+      btnPos.click();
+      break;
+    case "t": // +1 tackle
+      e.preventDefault();
+      document.getElementById("tacklePlus").click();
+      break;
+    case "r": // −1 tackle
+      e.preventDefault();
+      document.getElementById("tackleMinus").click();
+      break;
+  }
+});
+
 render();
+
 </script>
 </body>
 </html>
