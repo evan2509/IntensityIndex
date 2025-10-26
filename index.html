@@ -11,148 +11,159 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-  :root { color-scheme: light dark; }
+:root { color-scheme: light dark; }
 
-  /* ---------- Base ---------- */
-  body {
-    font-family: system-ui, sans-serif;
-    margin:0;
-    padding:0;
-    transition: background 0.3s, color 0.3s;
-  }
-  @media (prefers-color-scheme: dark) {
-    body { background: linear-gradient(180deg,#111,#222); color:#fff; }
-    .stat-label { color:#ccc; }
-  }
-  @media (prefers-color-scheme: light) {
-    body { background: linear-gradient(180deg,#f0f0f0,#ffffff); color:#111; }
-    .stat-label { color:#333; }
-  }
-
-  /* ---------- App wrapper ---------- */
-  .app { padding: 1.5rem 1rem; }
-
-  /* Desktop: two-column grid + left controls footer underneath */
-  @media (min-width:1024px) {
-    .app {
-      display:grid;
-      grid-template-columns: clamp(360px, 28vw, 460px) 1fr;
-      grid-template-rows: auto auto;
-      column-gap: 2rem;
-      align-items: start;
-      padding: 2rem;
-    }
-    .left     { grid-column:1; grid-row:1; position:sticky; top:16px; }
-    .right    { grid-column:2; grid-row:1 / span 2; min-width:0; }
-    .controls { grid-column:1; grid-row:2; }
-  }
-
-  /* ---------- Headline + Index ---------- */
-  h1 { font-size:2rem; margin:0.25rem 0 0.25rem; text-align:center; }
-  #indexValue { font-size:3.6rem; font-weight:800; margin:0.6rem 0 1.2rem; text-align:center; }
-
-  /* ---------- Buttons ---------- */
-  .btn {
-    display:block;
-    width:95%; max-width:480px;
-    margin:1rem auto;
-    padding:2rem;
-    font-size:1.6rem;
-    border:none; border-radius:1.2rem;
-    color:#fff; background:#1e88e5;
-    box-shadow:0 4px 10px rgba(0,0,0,0.3);
-    transition: background 0.15s, transform 0.1s, filter 0.15s;
-  }
-  #tackleMinus { background:#444; }
-  #tacklePlus  { background:#444; }
-  #possessionBtn.active { background:#d32f2f; }
-  .btn:active { transform:scale(0.96); filter:brightness(1.3); }
-
-  /* ---------- Flash ---------- */
-  .flash { animation: flash 0.25s ease-out; }
-  @keyframes flash { 0% { filter:brightness(2); transform:scale(1.05); }
-                     100%{ filter:brightness(1); transform:scale(1);} }
-
-  /* ---------- Stats ---------- */
-  .stats-container {
-    display:flex; justify-content:center; align-items:stretch;
-    gap:1rem; margin-top:1.2rem; flex-wrap:wrap;
-  }
-  .stat-box {
-    flex:1 1 40%; min-width:150px; max-width:220px;
-    background:#3333; border-radius:1rem;
-    padding:0.75rem 1rem;
-    box-shadow:0 3px 8px rgba(0,0,0,0.2);
-  }
-  .stat-label { font-size:1.05rem; margin:0; opacity:0.85; text-align:left; }
-  .stat-value { font-size:2.8rem; font-weight:800; margin-top:0.2rem; text-align:left; line-height:1.1; }
-
-  /* ---------- Graph ---------- */
-  #graphWrapper { width:95%; max-width:480px; margin:1.5rem auto 0; }
-  canvas { width:100%; height:260px !important; border-radius:10px; }
-
-  /* Desktop: graph fills right column height nicely and aligns visually with left column */
-@media (min-width:1024px) {
-  #graphWrapper {
-    width:100%;
-    max-width:none;
-    margin-top:2cm;   /* 👈 lowers the graph by ~2 cm */
-  }
-  .right canvas {
-    height: calc(100vh - 140px) !important;
-  }
+/* ---------- Base ---------- */
+body {
+  font-family: system-ui, sans-serif;
+  margin:0;
+  padding:0;
+  transition: background 0.3s, color 0.3s;
+}
+@media (prefers-color-scheme: dark) {
+  body { background: linear-gradient(180deg,#111,#222); color:#fff; }
+  .stat-label { color:#ccc; }
+}
+@media (prefers-color-scheme: light) {
+  body { background: linear-gradient(180deg,#f0f0f0,#ffffff); color:#111; }
+  .stat-label { color:#333; }
 }
 
+/* ---------- Layout ---------- */
+.app {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:1.5rem 0;
+}
+.panel {
+  width:95%;
+  max-width:480px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
 
-  /* ---------- Report + Reset (mobile: below graph; desktop: placed under left using grid) ---------- */
-  #reportBtn {
-    width:95%; max-width:480px;
-    margin:1rem auto 0.6rem;
-    padding:1.5rem;
-    font-size:1.4rem;
-    border:none; border-radius:1rem;
-    color:#fff; background:#2e7d32;
-    box-shadow:0 3px 10px rgba(0,0,0,0.3);
+@media (min-width:1024px) {
+  .app {
+    flex-direction:row;
+    align-items:flex-start;
+    justify-content:center;
+    gap:2rem;
+    padding:2rem;
   }
+  .panel { width:420px; align-items:center; }
+  #graphWrapper { margin-top:2cm; }
+  .right { flex:1; min-width:0; }
+}
 
-  .slider-container {
-    position: relative;
-    width: 95%; max-width: 480px;
-    height: 74px; /* slightly taller so text never clips */
-    background: #333;
-    border-radius: 50px;
-    margin: 0.6rem auto 0;
-    overflow: hidden;
-    user-select: none;
-    touch-action: none;
-    transition: background 0.3s;
-  }
-  .slider-text {
-    position: absolute;
-    inset: 0;                 /* full box */
-    display: flex;            /* perfect centering */
-    align-items: center;
-    justify-content: center;
-    color: #bbb;
-    font-size: 1.25rem;
-    pointer-events: none;
-    white-space: nowrap;
-    text-align: center;
-  }
-  .slider-handle {
-    position: absolute;
-    top: 7px; left: 7px;
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: #1e88e5;
-    transition: background 0.3s;
-    z-index: 2; /* above text but doesn’t clip it */
-  }
-  .slider-container.complete { background:#2e7d32; }
-  .slider-container.complete .slider-handle { background:#43a047; }
-  .slider-container.complete .slider-text { color:#fff; }
+/* ---------- Headers ---------- */
+h1 { font-size:2rem; margin-bottom:0.4rem; text-align:center; }
+#indexValue { font-size:3.6rem; font-weight:800; margin:0.5rem 0 1.5rem; text-align:center; }
 
-  footer { margin:1.2rem 0 0; font-size:0.9rem; opacity:0.8; text-align:center; }
+/* ---------- Buttons ---------- */
+.btn, #reportBtn, .slider-container, .stat-box {
+  width:100%;
+  box-sizing:border-box;
+}
+.btn {
+  margin:0.6rem 0;
+  padding:1.8rem;
+  font-size:1.5rem;
+  border:none; border-radius:1.2rem;
+  color:#fff; background:#1e88e5;
+  box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  transition: background 0.15s, transform 0.1s, filter 0.15s;
+}
+#tackleMinus, #tacklePlus { background:#444; }
+#possessionBtn.active { background:#d32f2f; }
+.btn:active { transform:scale(0.96); filter:brightness(1.3); }
+
+/* ---------- Stats ---------- */
+.stats-container {
+  display:flex; justify-content:center; align-items:center;
+  gap:0.8rem; margin-top:1.2rem; width:100%;
+}
+.stat-box {
+  flex:1;
+  background:#3333; border-radius:1rem;
+  padding:1rem;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.2);
+}
+.stat-label { font-size:1rem; margin-bottom:0.25rem; text-align:center; }
+.stat-value { font-size:2.6rem; font-weight:800; text-align:center; line-height:1.2; }
+
+/* ---------- Graph ---------- */
+#graphWrapper {
+  width:95%;
+  max-width:900px;
+  margin-top:1.5rem;
+}
+canvas {
+  width:100%;
+  height:280px !important;
+  border-radius:10px;
+}
+@media (min-width:1024px) {
+  #graphWrapper { width:100%; max-width:none; }
+  .right canvas { height:calc(100vh - 140px) !important; }
+}
+
+/* ---------- Report + Reset ---------- */
+#reportBtn {
+  margin:1rem 0 0.5rem;
+  padding:1.4rem;
+  font-size:1.3rem;
+  border:none; border-radius:1rem;
+  color:#fff; background:#2e7d32;
+  box-shadow:0 3px 10px rgba(0,0,0,0.3);
+}
+
+.slider-container {
+  position:relative;
+  height:70px;
+  background:#333;
+  border-radius:50px;
+  overflow:hidden;
+  user-select:none;
+  touch-action:none;
+  transition:background 0.3s;
+  margin-bottom:0.8rem;
+}
+.slider-text {
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#bbb;
+  font-size:1.2rem;
+  pointer-events:none;
+  white-space:nowrap;
+  text-align:center;
+}
+.slider-handle {
+  position:absolute;
+  top:5px; left:5px;
+  width:60px; height:60px;
+  border-radius:50%;
+  background:#1e88e5;
+  transition:background 0.3s;
+  z-index:2;
+}
+.slider-container.complete { background:#2e7d32; }
+.slider-container.complete .slider-handle { background:#43a047; }
+.slider-container.complete .slider-text { color:#fff; }
+
+footer {
+  font-size:0.85rem;
+  opacity:0.8;
+  text-align:center;
+  margin-top:0.5rem;
+}
+
 </style>
 </head>
 <body>
