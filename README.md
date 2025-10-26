@@ -1,2 +1,1 @@
-Graph working here but irregualr timing issue. 
-Buttons not uniform in mobile view.
+Mobile & deskopt versions working fine. Graph still displaying underneath reset in mobile view.
