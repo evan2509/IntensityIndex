@@ -2,124 +2,161 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Intensity Index Tracker</title>
 
-<!-- Chart.js + html2canvas -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-  :root { color-scheme: light dark; }
-  body {
-    font-family: system-ui, sans-serif;
-    text-align:center;
-    margin:0;
-    padding:2rem 1rem;
-    transition: background 0.3s, color 0.3s;
-  }
+:root { color-scheme: light dark; }
 
-  @media (prefers-color-scheme: dark) {
-    body { background: linear-gradient(180deg,#111,#222); color:#fff; }
-    .stat-label { color:#ccc; }
-  }
-  @media (prefers-color-scheme: light) {
-    body { background: linear-gradient(180deg,#f0f0f0,#ffffff); color:#111; }
-    .stat-label { color:#333; }
-  }
-
-  h1 { font-size:2rem; margin-bottom:0.5rem; }
-  #indexValue { font-size:3.5rem; font-weight:700; margin:1rem 0 2rem; }
-
-  .btn {
-    display:block;
-    width:95%; max-width:480px;
-    margin:1rem auto;
-    padding:2rem;
-    font-size:1.6rem;
-    border:none; border-radius:1.2rem;
-    color:#fff; background:#1e88e5;
-    box-shadow:0 4px 10px rgba(0,0,0,0.3);
-    transition: background 0.15s, transform 0.1s, filter 0.15s;
-  }
-  #tackleMinus { background:#444; }
-  #tacklePlus { background:#444; }
-  #possessionBtn.active { background:#d32f2f; }
-  .btn:active { transform:scale(0.96); filter:brightness(1.3); }
-
-  .flash { animation: flash 0.25s ease-out; }
-  @keyframes flash {
-    0% { filter:brightness(2); transform:scale(1.05); }
-    100% { filter:brightness(1); transform:scale(1); }
-  }
-
-  .stats-container {
-    display:flex; justify-content:center; align-items:center;
-    gap:1rem; margin-top:2rem; flex-wrap:wrap;
-  }
-  .stat-box {
-    flex:1 1 40%; min-width:150px; max-width:220px;
-    background:#3333; border-radius:1rem;
-    padding:1rem 0; box-shadow:0 3px 8px rgba(0,0,0,0.2);
-  }
-  .stat-label { font-size:1rem; margin-bottom:0.3rem; }
-  .stat-value { font-size:2.4rem; font-weight:700; }
-
-  #graphWrapper {
-    width:95%; max-width:480px; margin:2rem auto 0;
-    background:transparent;
-  }
-  canvas { width:100%; height:260px !important; }
-
- #reportBtn {
-  width:95%; 
-  max-width:480px;
-  margin:1rem auto 0.8rem;  /* reduced bottom margin */
-  padding:1.5rem;
-  font-size:1.4rem;
-  border:none; 
-  border-radius:1rem;
-  color:#fff; 
-  background:#2e7d32;
-  box-shadow:0 3px 10px rgba(0,0,0,0.3);
+/* ----------- Base styling ----------- */
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  text-align:center;
+  margin:0;
+  padding:2rem 1rem 4rem;
+  transition: background 0.3s, color 0.3s;
+  background: linear-gradient(180deg,#f7f7f7,#ffffff);
+  color:#111;
 }
 
+@media (prefers-color-scheme: dark) {
+  body { background: linear-gradient(180deg,#0e0e0e,#181818); color:#fff; }
+}
+
+h1 {
+  font-size:2.2rem;
+  margin-bottom:0.5rem;
+  letter-spacing:0.02em;
+}
+#indexValue {
+  font-size:3.8rem;
+  font-weight:700;
+  margin:1rem 0 2rem;
+}
+
+/* ----------- Buttons ----------- */
+.btn {
+  display:block;
+  width:95%;
+  max-width:480px;
+  margin:0.8rem auto;
+  padding:1.8rem;
+  font-size:1.4rem;
+  border:none;
+  border-radius:1rem;
+  color:#fff;
+  background:#1e88e5;
+  box-shadow:0 4px 10px rgba(0,0,0,0.2);
+  transition:background 0.15s, transform 0.1s;
+}
+#tackleMinus { background:#444; }
+#possessionBtn.active { background:#d32f2f; }
+.btn:active { transform:scale(0.97); filter:brightness(1.2); }
+
+/* two-column layout on larger screens */
+@media (min-width:768px) {
+  .button-grid {
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:1rem;
+    width:95%;
+    max-width:700px;
+    margin:1rem auto 2rem;
+  }
+  .btn { width:100%; margin:0; padding:1.4rem; font-size:1.2rem; }
+}
+
+/* ----------- Stats ----------- */
+.stats-container {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:1.2rem;
+  margin-top:2rem;
+  flex-wrap:wrap;
+}
+.stat-box {
+  flex:1 1 40%;
+  min-width:150px; max-width:220px;
+  background:#fff2;
+  border-radius:1rem;
+  padding:1rem 0.5rem;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  backdrop-filter:blur(4px);
+}
+.stat-label { font-size:0.95rem; margin-bottom:0.3rem; opacity:0.8; }
+.stat-value { font-size:2.2rem; font-weight:700; }
+
+/* ----------- Graph ----------- */
+#graphWrapper {
+  width:95%;
+  max-width:700px;
+  margin:2rem auto;
+}
+canvas { width:100%; height:320px !important; border-radius:1rem; }
+
+/* ----------- Report & Reset ----------- */
+.controls-footer {
+  width:95%;
+  max-width:700px;
+  margin:0 auto;
+}
+
+#reportBtn {
+  width:100%;
+  margin:0 auto 0.8rem;
+  padding:1.4rem;
+  font-size:1.2rem;
+  border:none;
+  border-radius:1rem;
+  color:#fff;
+  background:#2e7d32;
+  box-shadow:0 3px 8px rgba(0,0,0,0.2);
+}
+
+/* Reset slider */
 .slider-container {
   position: relative;
-  width: 95%; 
-  max-width: 480px;
+  width: 100%;
   height: 70px;
   background: #333;
   border-radius: 50px;
-  margin: 1.2rem auto 0; /* reduced top margin */
   overflow: hidden;
   user-select: none;
   touch-action: none;
   transition: background 0.3s;
+  box-shadow:0 3px 8px rgba(0,0,0,0.25);
 }
-  .slider-text {
-    position: absolute;
-    width: 100%;
-    top: 50%; left: 0;
-    transform: translateY(-50%);
-    color: #aaa;
-    font-size: 1.3rem;
-    pointer-events: none;
-  }
-  .slider-handle {
-    position: absolute;
-    top: 5px; left: 5px;
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: #1e88e5;
-    transition: background 0.3s;
-  }
-  .slider-container.complete { background:#2e7d32; }
-  .slider-container.complete .slider-handle { background:#43a047; }
-  .slider-container.complete .slider-text { color:#fff; }
+.slider-text {
+  position:absolute;
+  width:100%;
+  top:50%; left:0;
+  transform:translateY(-50%);
+  color:#aaa;
+  font-size:1.2rem;
+  pointer-events:none;
+}
+.slider-handle {
+  position:absolute;
+  top:5px; left:5px;
+  width:60px; height:60px;
+  border-radius:50%;
+  background:#1e88e5;
+  transition:background 0.3s;
+}
+.slider-container.complete { background:#2e7d32; }
+.slider-container.complete .slider-handle { background:#43a047; }
+.slider-container.complete .slider-text { color:#fff; }
 
-  footer { margin-top:3rem; font-size:0.85rem; opacity:0.8; }
+/* ----------- Footer ----------- */
+footer {
+  margin-top:2rem;
+  font-size:0.9rem;
+  opacity:0.7;
+}
 </style>
 </head>
 <body>
@@ -127,9 +164,11 @@
 <h1>Intensity Index Tracker</h1>
 <div id="indexValue">0.00</div>
 
-<button id="possessionBtn" class="btn">Start Opposition Possession</button>
-<button id="tacklePlus" class="btn">+1 Tackle</button>
-<button id="tackleMinus" class="btn">−1 Tackle</button>
+<div class="button-grid">
+  <button id="possessionBtn" class="btn">Start Opposition Possession</button>
+  <button id="tacklePlus" class="btn">+1 Tackle</button>
+  <button id="tackleMinus" class="btn">−1 Tackle</button>
+</div>
 
 <div class="stats-container">
   <div class="stat-box">
@@ -146,223 +185,18 @@
   <canvas id="intensityChart"></canvas>
 </div>
 
-<!-- Report button -->
-<button id="reportBtn">Generate Report</button>
-
-<div class="slider-container" id="resetSlider">
-  <div class="slider-text" id="sliderText">Slide to Reset</div>
-  <div class="slider-handle" id="sliderHandle"></div>
+<div class="controls-footer">
+  <button id="reportBtn">Generate Report</button>
+  <div class="slider-container" id="resetSlider">
+    <div class="slider-text" id="sliderText">Slide to Reset</div>
+    <div class="slider-handle" id="sliderHandle"></div>
+  </div>
 </div>
 
 <footer>Evan Dunne | Laois GAA</footer>
 
-<script>
-let tackles=0, oppSecondsAccum=0, oppStartMs=null, possessionActive=false;
-const elIndex=document.getElementById("indexValue"),
-      elTackles=document.getElementById("tackleCount"),
-      elTimeDisplay=document.getElementById("timeDisplay"),
-      btnPos=document.getElementById("possessionBtn");
+<!-- Your existing JS logic below -->
+<script src="tracker.js"></script>
 
-function formatTime(seconds){
-  const m=Math.floor(seconds/60), s=Math.floor(seconds%60);
-  return `${String(m).padStart(1,'0')}:${String(s).padStart(2,'0')}`;
-}
-function getCurrentOppSeconds(){ return possessionActive?oppSecondsAccum+(Date.now()-oppStartMs)/1000:oppSecondsAccum; }
-function getIntensity(){
-  const mins=getCurrentOppSeconds()/60;
-  return mins>0?tackles/mins:0;
-}
-
-const ctx=document.getElementById('intensityChart').getContext('2d');
-const chartData={ labels:[], datasets:[{ 
-  label:'Intensity Index',
-  data:[],
-  borderColor:'#1e88e5',
-  backgroundColor:'rgba(30,136,229,0.15)',
-  borderWidth:2,
-  fill:true,
-  tension:0.3,
-  spanGaps:false,
-  pointRadius:(ctx) => {
-    const total = ctx.chart.data.labels.length;
-    if (total <= 20) return 5;
-    else if (total <= 60) return (ctx.dataIndex % 3 === 0 ? 4 : 0);
-    else if (total <= 120) return (ctx.dataIndex % 6 === 0 ? 3 : 0);
-    else return 0;
-  },
-  pointHoverRadius:6,
-  pointBackgroundColor:'#1e88e5',
-  pointBorderColor:'#fff'
-}]};
-
-const intensityChart=new Chart(ctx,{
-  type:'line',
-  data:chartData,
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    scales:{
-      x:{
-        title:{display:true,text:'Opp Poss Time (MM:SS)'},
-        ticks:{
-          autoSkip:true,
-          maxTicksLimit:10,
-          callback:(val,index,ticks)=>{
-            const totalSecs=parseFloat(chartData.labels[index]);
-            const m=Math.floor(totalSecs/60);
-            const s=Math.floor(totalSecs%60);
-            return `${m}:${String(s).padStart(2,'0')}`;
-          }
-        }
-      },
-      y:{
-        title:{display:true,text:'Intensity Index'},
-        beginAtZero:true
-      }
-    },
-    plugins:{ legend:{display:false} }
-  }
-});
-
-function render(){
-  elTackles.textContent=tackles;
-  const seconds=getCurrentOppSeconds();
-  elTimeDisplay.textContent=formatTime(seconds);
-  elIndex.textContent=getIntensity().toFixed(2);
-}
-
-let timerInterval = null;
-let nextLogThreshold = 5;
-const LOG_INTERVAL_OPP_SECONDS = 5;
-
-function startLogging() {
-  if (timerInterval) return;
-  timerInterval = setInterval(() => {
-    if (!possessionActive) return;
-    render();
-    const oppSecs = getCurrentOppSeconds();
-    if (oppSecs >= nextLogThreshold) {
-      const intensity = getIntensity();
-      chartData.labels.push(oppSecs.toFixed(0));
-      chartData.datasets[0].data.push(intensity.toFixed(2));
-      if (chartData.labels.length > 100) {
-        chartData.labels.shift();
-        chartData.datasets[0].data.shift();
-      }
-      intensityChart.update();
-      nextLogThreshold += LOG_INTERVAL_OPP_SECONDS;
-    }
-  }, 1000);
-}
-
-function stopLogging() {
-  clearInterval(timerInterval);
-  timerInterval = null;
-}
-
-function togglePossession() {
-  if (!possessionActive) {
-    oppStartMs = Date.now();
-    possessionActive = true;
-    btnPos.textContent = "Stop Opposition Possession";
-    btnPos.classList.add("active");
-    startLogging();
-  } else {
-    oppSecondsAccum += (Date.now() - oppStartMs) / 1000;
-    possessionActive = false;
-    oppStartMs = null;
-    btnPos.textContent = "Start Opposition Possession";
-    btnPos.classList.remove("active");
-    stopLogging();
-    render();
-  }
-}
-document.getElementById("tacklePlus").onclick=e=>{tackles++;render();};
-document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();};
-btnPos.onclick=togglePossession;
-
-/* ------------ Generate PNG Report ------------ */
-document.getElementById("reportBtn").addEventListener("click", async () => {
-  const reportCanvas = document.createElement("canvas");
-  reportCanvas.width = 1000;
-  reportCanvas.height = 750;
-  const ctx2 = reportCanvas.getContext("2d");
-
-  // Background
-  ctx2.fillStyle = "#fff";
-  ctx2.fillRect(0, 0, reportCanvas.width, reportCanvas.height);
-
-  // Title
-  ctx2.fillStyle = "#000";
-  ctx2.font = "28px Arial";
-  ctx2.fillText("Laois Intensity Index Report", 40, 50);
-
-  // Timestamp
-  const now = new Date();
-  const timestamp = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) +
-                    " – " + now.toLocaleDateString();
-  ctx2.font = "16px Arial";
-  ctx2.fillText(timestamp, 40, 80);
-
-  // Stats
-  ctx2.font = "22px Arial";
-  ctx2.fillText("Intensity Index Rating: " + getIntensity().toFixed(2), 40, 120);
-  ctx2.fillText("Tackles: " + tackles, 40, 155);
-  ctx2.fillText("Opposition Possession Time: " + formatTime(getCurrentOppSeconds()), 40, 190);
-
-  // Capture chart
-  const chartCanvas = document.getElementById("intensityChart");
-  const chartImage = chartCanvas.toDataURL("image/png");
-  const img = new Image();
-  img.src = chartImage;
-  await new Promise(res => img.onload = res);
-  ctx2.drawImage(img, 40, 220, 920, 480);
-
-  // Download
-  const link = document.createElement("a");
-  link.download = "Laois_Intensity_Report.png";
-  link.href = reportCanvas.toDataURL("image/png");
-  link.click();
-});
-
-/* ------------ Reset slider ------------ */
-let startX=0,currentX=0,dragging=false;
-const slider=document.getElementById("resetSlider"),
-      handle=document.getElementById("sliderHandle"),
-      sliderText=document.getElementById("sliderText");
-function resetAll(){
-  tackles=0; oppSecondsAccum=0; oppStartMs=null; possessionActive=false;
-  nextLogThreshold = LOG_INTERVAL_OPP_SECONDS;
-  chartData.labels=[]; chartData.datasets[0].data=[]; intensityChart.update();
-  btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
-  render();
-  slider.classList.add("complete"); sliderText.textContent="✅ Game Reset";
-  handle.style.left=(slider.offsetWidth-handle.offsetWidth-5)+"px";
-  setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="5px";
-    sliderText.textContent="Slide to Reset"; },1500);
-}
-function startDrag(e){ dragging=true; startX=e.touches?e.touches[0].clientX:e.clientX; }
-function onDrag(e){
-  if(!dragging)return;
-  const clientX=e.touches?e.touches[0].clientX:e.clientX;
-  const dx=clientX-startX;
-  const max=slider.offsetWidth-handle.offsetWidth-5;
-  currentX=Math.min(Math.max(5,dx+5),max);
-  handle.style.left=currentX+"px";
-}
-function endDrag(){
-  if(!dragging)return; dragging=false;
-  const max=slider.offsetWidth-handle.offsetWidth-10;
-  if(currentX>=max-5) resetAll(); else handle.style.left="5px";
-}
-handle.addEventListener("mousedown",startDrag);
-handle.addEventListener("touchstart",startDrag);
-window.addEventListener("mousemove",onDrag);
-window.addEventListener("touchmove",onDrag);
-window.addEventListener("mouseup",endDrag);
-window.addEventListener("touchend",endDrag);
-
-render();
-</script>
 </body>
 </html>
