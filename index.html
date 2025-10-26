@@ -92,10 +92,17 @@
   canvas { width:100%; height:260px !important; border-radius:10px; }
 
   /* Desktop: graph fills right column height nicely and aligns visually with left column */
-  @media (min-width:1024px) {
-    #graphWrapper { width:100%; max-width:none; margin:0; }
-    .right canvas { height: calc(100vh - 140px) !important; } /* keeps top aligned, no overshoot */
+@media (min-width:1024px) {
+  #graphWrapper {
+    width:100%;
+    max-width:none;
+    margin-top:2cm;   /* 👈 lowers the graph by ~2 cm */
   }
+  .right canvas {
+    height: calc(100vh - 140px) !important;
+  }
+}
+
 
   /* ---------- Report + Reset (mobile: below graph; desktop: placed under left using grid) ---------- */
   #reportBtn {
