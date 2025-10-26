@@ -13,208 +13,197 @@
 <style>
 :root { color-scheme: light dark; }
 
-/* ---------- Base ---------- */
-body {
+/* -------- Base -------- */
+body{
   font-family: system-ui, sans-serif;
-  margin:0;
-  padding:0;
-  transition: background 0.3s, color 0.3s;
+  margin:0; padding:0;
+  transition:background .3s,color .3s;
 }
-@media (prefers-color-scheme: dark) {
-  body { background: linear-gradient(180deg,#111,#222); color:#fff; }
-  .stat-label { color:#ccc; }
+@media (prefers-color-scheme: dark){
+  body{background:linear-gradient(180deg,#111,#222);color:#fff;}
+  .stat-label{color:#ccc;}
 }
-@media (prefers-color-scheme: light) {
-  body { background: linear-gradient(180deg,#f0f0f0,#ffffff); color:#111; }
-  .stat-label { color:#333; }
+@media (prefers-color-scheme: light){
+  body{background:linear-gradient(180deg,#f0f0f0,#fff);color:#111;}
+  .stat-label{color:#333;}
 }
 
-/* ---------- Layout ---------- */
-.app {
+/* -------- App layout -------- */
+.app{
   display:flex;
   flex-direction:column;
+  gap:1.5rem;
+  padding:1.25rem 1rem;
   align-items:center;
-  padding:1.5rem 0;
 }
-.panel {
+.left{
   width:95%;
   max-width:480px;
   display:flex;
   flex-direction:column;
   align-items:center;
 }
+.right{
+  width:95%;
+  max-width:900px;
+}
 
-@media (min-width:1024px) {
-  .app {
+/* Desktop split */
+@media (min-width:1024px){
+  .app{
     flex-direction:row;
     align-items:flex-start;
     justify-content:center;
     gap:2rem;
     padding:2rem;
   }
-  .panel { width:420px; align-items:center; }
-  #graphWrapper { margin-top:2cm; }
-  .right { flex:1; min-width:0; }
+  .left{
+    max-width:440px; /* fixed visual column */
+    position:sticky; top:16px;
+  }
+  .right{
+    flex:1; max-width:none; min-width:0;
+  }
 }
 
-/* ---------- Headers ---------- */
-h1 { font-size:2rem; margin-bottom:0.4rem; text-align:center; }
-#indexValue { font-size:3.6rem; font-weight:800; margin:0.5rem 0 1.5rem; text-align:center; }
+/* -------- Heading / index -------- */
+h1{font-size:2rem;margin:.25rem 0 .25rem;text-align:center;}
+#indexValue{font-size:3.6rem;font-weight:800;margin:.6rem 0 1.2rem;text-align:center;}
 
-/* ---------- Buttons ---------- */
-.btn, #reportBtn, .slider-container, .stat-box {
+/* -------- Buttons (identical width) -------- */
+.stack > *{width:100%; box-sizing:border-box;}
+.stack{width:100%;}
+.btn{
+  display:block;
   width:100%;
-  box-sizing:border-box;
-}
-.btn {
-  margin:0.6rem 0;
-  padding:1.8rem;
+  margin:.65rem 0;
+  padding:1.9rem;
   font-size:1.5rem;
-  border:none; border-radius:1.2rem;
-  color:#fff; background:#1e88e5;
-  box-shadow:0 4px 10px rgba(0,0,0,0.3);
-  transition: background 0.15s, transform 0.1s, filter 0.15s;
+  border:none;border-radius:1.2rem;
+  color:#fff;background:#1e88e5;
+  box-shadow:0 4px 10px rgba(0,0,0,.3);
+  transition:background .15s,transform .1s,filter .15s;
 }
-#tackleMinus, #tacklePlus { background:#444; }
-#possessionBtn.active { background:#d32f2f; }
-.btn:active { transform:scale(0.96); filter:brightness(1.3); }
+#tacklePlus,#tackleMinus{background:#444;}
+#possessionBtn.active{background:#d32f2f;}
+.btn:active{transform:scale(.96);filter:brightness(1.2);}
 
-/* ---------- Stats ---------- */
-.stats-container {
-  display:flex; justify-content:center; align-items:center;
-  gap:0.8rem; margin-top:1.2rem; width:100%;
-}
-.stat-box {
-  flex:1;
-  background:#3333; border-radius:1rem;
-  padding:1rem;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  box-shadow:0 3px 8px rgba(0,0,0,0.2);
-}
-.stat-label { font-size:1rem; margin-bottom:0.25rem; text-align:center; }
-.stat-value { font-size:2.6rem; font-weight:800; text-align:center; line-height:1.2; }
-
-/* ---------- Graph ---------- */
-#graphWrapper {
-  width:95%;
-  max-width:900px;
-  margin-top:1.5rem;
-}
-canvas {
+/* -------- Stats row -------- */
+.stats{
   width:100%;
-  height:280px !important;
-  border-radius:10px;
-}
-@media (min-width:1024px) {
-  #graphWrapper { width:100%; max-width:none; }
-  .right canvas { height:calc(100vh - 140px) !important; }
-}
-
-/* ---------- Report + Reset ---------- */
-#reportBtn {
-  margin:1rem 0 0.5rem;
-  padding:1.4rem;
-  font-size:1.3rem;
-  border:none; border-radius:1rem;
-  color:#fff; background:#2e7d32;
-  box-shadow:0 3px 10px rgba(0,0,0,0.3);
-}
-
-.slider-container {
-  position:relative;
-  height:70px;
-  background:#333;
-  border-radius:50px;
-  overflow:hidden;
-  user-select:none;
-  touch-action:none;
-  transition:background 0.3s;
-  margin-bottom:0.8rem;
-}
-.slider-text {
-  position:absolute;
-  inset:0;
   display:flex;
+  gap:.9rem;
+  margin-top:1.1rem;
+}
+.stat{
+  flex:1;
+  background:#3333;
+  border-radius:1rem;
+  box-shadow:0 3px 8px rgba(0,0,0,.2);
+  padding:.9rem 1rem;
+  display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
-  color:#bbb;
-  font-size:1.2rem;
-  pointer-events:none;
-  white-space:nowrap;
-  text-align:center;
 }
-.slider-handle {
-  position:absolute;
-  top:5px; left:5px;
-  width:60px; height:60px;
-  border-radius:50%;
-  background:#1e88e5;
-  transition:background 0.3s;
-  z-index:2;
-}
-.slider-container.complete { background:#2e7d32; }
-.slider-container.complete .slider-handle { background:#43a047; }
-.slider-container.complete .slider-text { color:#fff; }
+.stat-label{font-size:1rem;margin-bottom:.25rem;text-align:center;}
+.stat-value{font-size:2.8rem;font-weight:800;line-height:1;text-align:center;}
 
-footer {
-  font-size:0.85rem;
-  opacity:0.8;
-  text-align:center;
-  margin-top:0.5rem;
+/* -------- Graph -------- */
+#graphWrapper{ width:100%; margin-top:1.4rem; }
+canvas{ width:100%; height:280px !important; border-radius:10px; }
+
+@media (min-width:1024px){
+  #graphWrapper{ margin-top:2cm; } /* lower by ~2cm */
+  .right canvas{ height:calc(100vh - 160px) !important; }
 }
 
+/* -------- Report + Reset (kept under left) -------- */
+#reportBtn{
+  width:100%;
+  margin:1rem 0 .6rem;
+  padding:1.4rem;
+  font-size:1.3rem;
+  border:none;border-radius:1rem;
+  color:#fff;background:#2e7d32;
+  box-shadow:0 3px 10px rgba(0,0,0,.3);
+}
+
+.slider{
+  width:100%;
+  height:72px;
+  background:#333;border-radius:50px;
+  overflow:hidden;position:relative;
+  user-select:none;touch-action:none;
+  box-shadow:0 3px 8px rgba(0,0,0,.25);
+}
+.slider-text{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  color:#bbb; font-size:1.2rem; pointer-events:none;
+  white-space:nowrap; text-align:center;
+}
+.slider-handle{
+  position:absolute; top:6px; left:6px;
+  width:60px;height:60px;border-radius:50%;
+  background:#1e88e5; transition:background .3s; z-index:2;
+}
+.slider.complete{background:#2e7d32;}
+.slider.complete .slider-handle{background:#43a047;}
+.slider.complete .slider-text{color:#fff;}
+
+footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
+
+/* -------- Flash animation -------- */
+.flash{animation:flash .25s ease-out;}
+@keyframes flash{0%{filter:brightness(2);transform:scale(1.05)}100%{filter:brightness(1);transform:scale(1)}}
 </style>
 </head>
 <body>
 
 <div class="app">
-  <!-- LEFT COLUMN: header + buttons + stats -->
-  <section class="left">
+  <!-- LEFT COLUMN: everything stacked at identical width -->
+  <aside class="left">
     <h1>Intensity Index Tracker</h1>
     <div id="indexValue">0.00</div>
 
-    <button id="possessionBtn" class="btn">Start Opposition Possession</button>
-    <button id="tacklePlus" class="btn">+1 Tackle</button>
-    <button id="tackleMinus" class="btn">−1 Tackle</button>
+    <div class="stack">
+      <button id="possessionBtn" class="btn">Start Opposition Possession</button>
+      <button id="tacklePlus"  class="btn">+1 Tackle</button>
+      <button id="tackleMinus" class="btn">−1 Tackle</button>
+    </div>
 
-    <div class="stats-container">
-      <div class="stat-box">
+    <div class="stats">
+      <div class="stat">
         <div class="stat-label">Tackles</div>
         <div class="stat-value" id="tackleCount">0</div>
       </div>
-      <div class="stat-box">
+      <div class="stat">
         <div class="stat-label">Opp Poss Time</div>
         <div class="stat-value" id="timeDisplay">00:00</div>
       </div>
     </div>
-  </section>
 
-  <!-- RIGHT COLUMN: graph -->
-  <section class="right">
-    <div id="graphWrapper">
-      <canvas id="intensityChart"></canvas>
-    </div>
-  </section>
-
-  <!-- CONTROLS placed after graph in DOM so on mobile the graph sits above them.
-       On desktop, CSS grid positions this back under the left column. -->
-  <section class="controls">
-    <!-- Report button -->
     <button id="reportBtn">Generate Report</button>
 
-    <!-- Reset slider -->
-    <div class="slider-container" id="resetSlider">
+    <div class="slider" id="resetSlider">
       <div class="slider-text" id="sliderText">Slide to Reset</div>
       <div class="slider-handle" id="sliderHandle"></div>
     </div>
 
     <footer>Evan Dunne | Laois GAA</footer>
-  </section>
+  </aside>
+
+  <!-- RIGHT COLUMN: graph -->
+  <main class="right">
+    <div id="graphWrapper">
+      <canvas id="intensityChart"></canvas>
+    </div>
+  </main>
 </div>
 
 <script>
-/* ================== EXISTING LOGIC (unchanged) ================== */
+/* ------------------------ YOUR EXISTING WORKING JS ------------------------ */
 let tackles=0, oppSecondsAccum=0, oppStartMs=null, possessionActive=false;
 const elIndex=document.getElementById("indexValue"),
       elTackles=document.getElementById("tackleCount"),
@@ -237,46 +226,23 @@ const chartData={ labels:[], datasets:[{
   data:[],
   borderColor:'#1e88e5',
   backgroundColor:'rgba(30,136,229,0.15)',
-  borderWidth:2,
-  fill:true,
-  tension:0.3,
-  spanGaps:false,
-  pointRadius:(ctx) => {
-    const total = ctx.chart.data.labels.length;
-    if (total <= 20) return 5;
-    else if (total <= 60) return (ctx.dataIndex % 3 === 0 ? 4 : 0);
-    else if (total <= 120) return (ctx.dataIndex % 6 === 0 ? 3 : 0);
-    else return 0;
-  },
-  pointHoverRadius:6,
-  pointBackgroundColor:'#1e88e5',
-  pointBorderColor:'#fff'
+  borderWidth:2, fill:true, tension:0.3, spanGaps:false,
+  pointRadius:(ctx)=>{const t=ctx.chart.data.labels.length;
+    if(t<=20)return 5; else if(t<=60)return(ctx.dataIndex%3===0?4:0);
+    else if(t<=120)return(ctx.dataIndex%6===0?3:0); else return 0;},
+  pointHoverRadius:6, pointBackgroundColor:'#1e88e5', pointBorderColor:'#fff'
 }]};
 
 const intensityChart=new Chart(ctx,{
-  type:'line',
-  data:chartData,
+  type:'line', data:chartData,
   options:{
-    responsive:true,
-    maintainAspectRatio:false,
+    responsive:true, maintainAspectRatio:false,
     scales:{
-      x:{
-        title:{display:true,text:'Opp Poss Time (MM:SS)'},
-        ticks:{
-          autoSkip:true,
-          maxTicksLimit:10,
-          callback:(val,index,ticks)=>{
-            const totalSecs=parseFloat(chartData.labels[index]);
-            const m=Math.floor(totalSecs/60);
-            const s=Math.floor(totalSecs%60);
-            return `${m}:${String(s).padStart(2,'0')}`;
-          }
-        }
-      },
-      y:{
-        title:{display:true,text:'Intensity Index'},
-        beginAtZero:true
-      }
+      x:{ title:{display:true,text:'Opp Poss Time (MM:SS)'},
+          ticks:{autoSkip:true,maxTicksLimit:10,
+            callback:(val,idx)=>{const s=parseFloat(chartData.labels[idx]);
+              const m=Math.floor(s/60), ss=Math.floor(s%60); return `${m}:${String(ss).padStart(2,'0')}`;}}},
+      y:{ title:{display:true,text:'Intensity Index'}, beginAtZero:true }
     },
     plugins:{ legend:{display:false} }
   }
@@ -289,129 +255,90 @@ function render(){
   elIndex.textContent=getIntensity().toFixed(2);
 }
 
-let timerInterval = null;
-let nextLogThreshold = 5;
-const LOG_INTERVAL_OPP_SECONDS = 5;
+let timerInterval=null;
+let nextLogThreshold=5;
+const LOG_INTERVAL_OPP_SECONDS=5;
 
-function startLogging() {
-  if (timerInterval) return;
-  timerInterval = setInterval(() => {
-    if (!possessionActive) return;
+function startLogging(){
+  if(timerInterval) return;
+  timerInterval=setInterval(()=>{
+    if(!possessionActive) return;
     render();
-    const oppSecs = getCurrentOppSeconds();
-    if (oppSecs >= nextLogThreshold) {
-      const intensity = getIntensity();
+    const oppSecs=getCurrentOppSeconds();
+    if(oppSecs>=nextLogThreshold){
+      const intensity=getIntensity();
       chartData.labels.push(oppSecs.toFixed(0));
       chartData.datasets[0].data.push(intensity.toFixed(2));
-      if (chartData.labels.length > 100) {
-        chartData.labels.shift();
-        chartData.datasets[0].data.shift();
-      }
+      if(chartData.labels.length>100){chartData.labels.shift();chartData.datasets[0].data.shift();}
       intensityChart.update();
-      nextLogThreshold += LOG_INTERVAL_OPP_SECONDS;
+      nextLogThreshold+=LOG_INTERVAL_OPP_SECONDS;
     }
-  }, 1000);
+  },1000);
 }
+function stopLogging(){ clearInterval(timerInterval); timerInterval=null; }
 
-function stopLogging() {
-  clearInterval(timerInterval);
-  timerInterval = null;
-}
-
-function togglePossession() {
-  if (!possessionActive) {
-    oppStartMs = Date.now();
-    possessionActive = true;
-    btnPos.textContent = "Stop Opposition Possession";
-    btnPos.classList.add("active");
+function togglePossession(){
+  if(!possessionActive){
+    oppStartMs=Date.now(); possessionActive=true;
+    btnPos.textContent="Stop Opposition Possession"; btnPos.classList.add("active");
     startLogging();
-  } else {
-    oppSecondsAccum += (Date.now() - oppStartMs) / 1000;
-    possessionActive = false;
-    oppStartMs = null;
-    btnPos.textContent = "Start Opposition Possession";
-    btnPos.classList.remove("active");
-    stopLogging();
-    render();
+  }else{
+    oppSecondsAccum+=(Date.now()-oppStartMs)/1000; possessionActive=false; oppStartMs=null;
+    btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
+    stopLogging(); render();
   }
 }
-document.getElementById("tacklePlus").onclick=e=>{tackles++;render();};
-document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();};
+document.getElementById("tacklePlus").onclick=e=>{tackles++;render();e.target.classList.add('flash');setTimeout(()=>e.target.classList.remove('flash'),200);};
+document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();e.target.classList.add('flash');setTimeout(()=>e.target.classList.remove('flash'),200);};
 btnPos.onclick=togglePossession;
 
-/* ------------ Generate PNG Report ------------ */
+/* Generate PNG Report */
 document.getElementById("reportBtn").addEventListener("click", async () => {
-  const reportCanvas = document.createElement("canvas");
-  reportCanvas.width = 1000;
-  reportCanvas.height = 750;
-  const ctx2 = reportCanvas.getContext("2d");
-
-  // Background
-  ctx2.fillStyle = "#fff";
-  ctx2.fillRect(0, 0, reportCanvas.width, reportCanvas.height);
-
-  // Title
-  ctx2.fillStyle = "#000";
-  ctx2.font = "28px Arial";
-  ctx2.fillText("Laois Intensity Index Report", 40, 50);
-
-  // Timestamp
-  const now = new Date();
-  const timestamp = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) +
-                    " – " + now.toLocaleDateString();
-  ctx2.font = "16px Arial";
-  ctx2.fillText(timestamp, 40, 80);
-
-  // Stats
-  ctx2.font = "22px Arial";
-  ctx2.fillText("Intensity Index Rating: " + getIntensity().toFixed(2), 40, 120);
-  ctx2.fillText("Tackles: " + tackles, 40, 155);
-  ctx2.fillText("Opposition Possession Time: " + formatTime(getCurrentOppSeconds()), 40, 190);
-
-  // Capture chart
-  const chartCanvas = document.getElementById("intensityChart");
-  const chartImage = chartCanvas.toDataURL("image/png");
-  const img = new Image();
-  img.src = chartImage;
-  await new Promise(res => img.onload = res);
-  ctx2.drawImage(img, 40, 220, 920, 480);
-
-  // Download
-  const link = document.createElement("a");
-  link.download = "Laois_Intensity_Report.png";
-  link.href = reportCanvas.toDataURL("image/png");
-  link.click();
+  const reportCanvas=document.createElement("canvas");
+  reportCanvas.width=1000; reportCanvas.height=750;
+  const c2=reportCanvas.getContext("2d");
+  c2.fillStyle="#fff"; c2.fillRect(0,0,reportCanvas.width,reportCanvas.height);
+  c2.fillStyle="#000"; c2.font="28px Arial"; c2.fillText("Laois Intensity Index Report",40,50);
+  const now=new Date();
+  const ts=now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})+" – "+now.toLocaleDateString();
+  c2.font="16px Arial"; c2.fillText(ts,40,80);
+  c2.font="22px Arial";
+  c2.fillText("Intensity Index Rating: "+getIntensity().toFixed(2),40,120);
+  c2.fillText("Tackles: "+tackles,40,155);
+  c2.fillText("Opposition Possession Time: "+formatTime(getCurrentOppSeconds()),40,190);
+  const chartCanvas=document.getElementById("intensityChart");
+  const img=new Image(); img.src=chartCanvas.toDataURL("image/png"); await new Promise(r=>img.onload=r);
+  c2.drawImage(img,40,220,920,480);
+  const a=document.createElement("a"); a.download="Laois_Intensity_Report.png"; a.href=reportCanvas.toDataURL("image/png"); a.click();
 });
 
-/* ------------ Reset slider ------------ */
+/* Reset slider */
 let startX=0,currentX=0,dragging=false;
 const slider=document.getElementById("resetSlider"),
       handle=document.getElementById("sliderHandle"),
       sliderText=document.getElementById("sliderText");
 function resetAll(){
   tackles=0; oppSecondsAccum=0; oppStartMs=null; possessionActive=false;
-  nextLogThreshold = LOG_INTERVAL_OPP_SECONDS;
+  nextLogThreshold=LOG_INTERVAL_OPP_SECONDS;
   chartData.labels=[]; chartData.datasets[0].data=[]; intensityChart.update();
   btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
   render();
   slider.classList.add("complete"); sliderText.textContent="✅ Game Reset";
-  handle.style.left=(slider.offsetWidth-handle.offsetWidth-5)+"px";
-  setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="5px";
+  handle.style.left=(slider.offsetWidth-handle.offsetWidth-6)+"px";
+  setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="6px";
     sliderText.textContent="Slide to Reset"; },1500);
 }
-function startDrag(e){ dragging=true; startX=e.touches?e.touches[0].clientX:e.clientX; }
+function startDrag(e){ dragging=true; startX=(e.touches?e.touches[0].clientX:e.clientX); }
 function onDrag(e){
-  if(!dragging)return;
-  const clientX=e.touches?e.touches[0].clientX:e.clientX;
-  const dx=clientX-startX;
-  const max=slider.offsetWidth-handle.offsetWidth-5;
-  currentX=Math.min(Math.max(5,dx+5),max);
-  handle.style.left=currentX+"px";
+  if(!dragging) return;
+  const clientX=(e.touches?e.touches[0].clientX:e.clientX);
+  const dx=clientX-startX; const max=slider.offsetWidth-handle.offsetWidth-6;
+  currentX=Math.min(Math.max(6,dx+6),max); handle.style.left=currentX+"px";
 }
 function endDrag(){
-  if(!dragging)return; dragging=false;
+  if(!dragging) return; dragging=false;
   const max=slider.offsetWidth-handle.offsetWidth-10;
-  if(currentX>=max-5) resetAll(); else handle.style.left="5px";
+  if(currentX>=max-4) resetAll(); else handle.style.left="6px";
 }
 handle.addEventListener("mousedown",startDrag);
 handle.addEventListener("touchstart",startDrag);
@@ -421,7 +348,6 @@ window.addEventListener("mouseup",endDrag);
 window.addEventListener("touchend",endDrag);
 
 render();
-/* ================== END ================== */
 </script>
 </body>
 </html>
