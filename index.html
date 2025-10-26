@@ -346,7 +346,7 @@ function resetAll(){
   chartData.labels=[]; chartData.datasets[0].data=[]; intensityChart.update();
   btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
   render();
-  slider.classList.add("complete"); sliderText.textContent="✅ Game Reset";
+  slider.classList.add("complete"); sliderText.textContent="Game Reset";
   handle.style.left=(slider.offsetWidth-handle.offsetWidth-6)+"px";
   setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="6px";
     sliderText.textContent="Slide to Reset"; },1500);
