@@ -67,9 +67,11 @@ body{
   }
 }
 
+/* -------- Heading / index -------- */
 h1{font-size:2rem;margin:.25rem 0 .25rem;text-align:center;}
 #indexValue{font-size:3.6rem;font-weight:800;margin:.6rem 0 1rem;text-align:center;}
 
+/* -------- Shortcut info -------- */
 #shortcutInfo {
   font-size: 0.9rem;
   text-align: center;
@@ -155,6 +157,7 @@ canvas {
   }
 }
 
+/* -------- Report + Reset -------- */
 #reportBtn{
   width:100%;
   margin:1rem 0 .6rem;
@@ -189,6 +192,8 @@ canvas {
 .slider.complete .slider-text{color:#fff;}
 
 footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
+
+/* -------- Flash animation -------- */
 .flash{animation:flash .25s ease-out;}
 @keyframes flash{0%{filter:brightness(2);transform:scale(1.05)}100%{filter:brightness(1);transform:scale(1)}}
 </style>
@@ -196,6 +201,7 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
 <body>
 
 <div class="app">
+  <!-- LEFT COLUMN -->
   <aside class="left">
     <h1>Intensity Index Tracker</h1>
     <div id="indexValue">0.00</div>
@@ -233,6 +239,7 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
     <footer>Evan Dunne | Laois GAA</footer>
   </aside>
 
+  <!-- RIGHT COLUMN -->
   <main class="right">
     <div id="graphWrapper">
       <canvas id="intensityChart"></canvas>
@@ -241,187 +248,349 @@ footer{margin:.8rem 0 0; font-size:.9rem; opacity:.8; text-align:center;}
 </div>
 
 <script>
+/* ------------------------ STATE ------------------------ */
 let tackles=0, oppSecondsAccum=0, oppStartMs=null, possessionActive=false;
+
 const elIndex=document.getElementById("indexValue"),
       elTackles=document.getElementById("tackleCount"),
       elTimeDisplay=document.getElementById("timeDisplay"),
       btnPos=document.getElementById("possessionBtn");
 
 function formatTime(seconds){
-  const m=Math.floor(seconds/60), s=Math.floor(seconds%60);
-  return `${m}:${String(s).padStart(2,'0')}`;
+  const s = Math.max(0, Math.floor(seconds));
+  const m=Math.floor(s/60), ss=s%60;
+  return `${String(m)}:${String(ss).padStart(2,'0')}`;
 }
 function getCurrentOppSeconds(){
-  return possessionActive?oppSecondsAccum+(Date.now()-oppStartMs)/1000:oppSecondsAccum;
+  return possessionActive ? oppSecondsAccum + (Date.now()-oppStartMs)/1000 : oppSecondsAccum;
 }
-function getIntensity(){
-  const mins=getCurrentOppSeconds()/60;
-  return mins>0?tackles/mins:0;
+function intensityAtSeconds(sec) {
+  const mins = Math.max(0, sec) / 60;
+  return mins > 0 ? (tackles / mins) : 0;
+}
+function getLiveIntensity(){
+  const mins = getCurrentOppSeconds()/60;
+  return mins>0 ? tackles/mins : 0;
 }
 
-/* ---------- Chart Setup ---------- */
-const ctx=document.getElementById("intensityChart").getContext("2d");
-const chartData={labels:[],datasets:[{
-  label:"Intensity Index",
-  data:[],
-  borderColor:"#1e88e5",
-  backgroundColor:"rgba(30,136,229,0.15)",
-  borderWidth:2,fill:true,tension:0.3,spanGaps:false
-}]};
+/* ------------------------ CHART ------------------------ */
+/* We use XY points with a linear x-axis measured in seconds */
+const ctx=document.getElementById('intensityChart').getContext('2d');
 
-const intensityChart=new Chart(ctx,{
-  type:"line",
-  data:chartData,
+const dataset = {
+  label:'Intensity Index',
+  data:[],                   // [{x: seconds, y: intensity}]
+  borderColor:'#1e88e5',
+  backgroundColor:'rgba(30,136,229,0.15)',
+  borderWidth:2,
+  fill:true,
+  tension:0.3,
+  spanGaps:false,
+  pointRadius:(c)=>{
+    const n=c.dataset.data.length;
+    if(n<=20) return 5;
+    if(n<=60) return (c.dataIndex%3===0?4:0);
+    if(n<=120) return (c.dataIndex%6===0?3:0);
+    return 0;
+  },
+  pointHoverRadius:6,
+  pointBackgroundColor:'#1e88e5',
+  pointBorderColor:'#fff',
+  parsing: true,             // Chart reads x/y from objects
+};
+
+const chart = new Chart(ctx,{
+  type:'line',
+  data:{ datasets:[dataset] },
   options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
+    responsive:true, maintainAspectRatio:false,
+    animation:false,
     scales:{
       x:{
-        type:"linear",
-        title:{display:true,text:"Opp Poss Time (MM:SS)"},
+        type:'linear',
         min:0,
+        suggestedMax:60, // start with 1 minute, will update dynamically
         ticks:{
-          callback:(val)=>{const m=Math.floor(val/60),s=Math.floor(val%60);
-            return `${m}:${String(s).padStart(2,"0")}`;}
-        }
+          autoSkip:false,
+          callback:(value)=>formatTime(value)
+        },
+        title:{display:true, text:'Opp Poss Time (MM:SS)'},
+        grace: 0
       },
       y:{
         beginAtZero:true,
-        title:{display:true,text:"Intensity Index"}
+        title:{display:true, text:'Intensity Index'}
       }
     },
-    plugins:{legend:{display:false}}
+    plugins:{ legend:{display:false} }
   }
 });
 
-function render(){
-  elTackles.textContent=tackles;
-  const seconds=getCurrentOppSeconds();
-  elTimeDisplay.textContent=formatTime(seconds);
-  elIndex.textContent=getIntensity().toFixed(2);
+/* ---- Dynamic tick step based on total seconds ---- */
+function tickStepFor(totalSecs){
+  if(totalSecs < 120) return 5;        // <2 min → 5s
+  if(totalSecs < 300) return 15;       // 2–5 min → 15s
+  if(totalSecs < 600) return 30;       // 5–10 min → 30s
+  return 60;                           // ≥10 min → 60s
 }
-
-/* ---------- Logging ---------- */
-let timerInterval=null;
-const LOG_INTERVAL=5;
-let nextLogThreshold=LOG_INTERVAL;
-
-function dynamicTickSpacing(totalSeconds){
-  if(totalSeconds<120) return 5;
-  if(totalSeconds<300) return 15;
-  if(totalSeconds<600) return 30;
-  return 60;
+function roundUpTo(value, step){
+  return Math.ceil(value/step)*step;
 }
+function updateXAxisLimits(final=false){
+  const total = getCurrentOppSeconds();
+  const step = tickStepFor(total);
+  chart.options.scales.x.ticks.stepSize = step;
 
-function logPoint(force=false){
-  const oppSecs=getCurrentOppSeconds();
-  if(force||oppSecs>=nextLogThreshold){
-    const intensity=getIntensity();
-    chartData.labels.push(oppSecs);
-    chartData.datasets[0].data.push(intensity);
-
-    // update scale
-    const total=Math.ceil(oppSecs);
-    intensityChart.options.scales.x.max=total;
-    intensityChart.options.scales.x.ticks.stepSize=dynamicTickSpacing(total);
-    intensityChart.update();
-
-    nextLogThreshold=Math.floor(oppSecs/LOG_INTERVAL)*LOG_INTERVAL+LOG_INTERVAL;
+  if (final){
+    // After stop: exact domain end (no padding), so the line reaches the end
+    const exact = Math.max(0, Math.round(total));
+    chart.options.scales.x.max = exact;
+  } else {
+    // While running: keep a clean rounded window that always contains the line
+    const maxRounded = Math.max(step, roundUpTo(total, step));
+    chart.options.scales.x.max = maxRounded;
   }
+}
+
+/* ------------------------ LOGGING ------------------------ */
+/* Log strictly every 5 seconds, starting at 0. Also force a final exact sample at stop. */
+const LOG_EVERY = 5; // seconds
+let nextLogAt = 0;
+let samplerInterval = null;
+
+function pushSample(sec){
+  dataset.data.push({ x: sec, y: intensityAtSeconds(sec) });
 }
 
 function startLogging(){
-  if(timerInterval) return;
-  timerInterval=setInterval(()=>{
+  if (samplerInterval) return;
+
+  // Ensure a 0s sample exists on start
+  if (dataset.data.length === 0) {
+    nextLogAt = 0;
+    pushSample(0); // y = 0 at t=0
+  }
+
+  samplerInterval = setInterval(()=>{
     if(!possessionActive) return;
+
+    const nowSecs = getCurrentOppSeconds();
+
+    // Log each 5s boundary we’ve crossed; handles timer jitter
+    while (nowSecs >= nextLogAt + LOG_EVERY - 1e-6) {
+      nextLogAt += LOG_EVERY;
+      pushSample(nextLogAt);
+    }
+
+    // Update UI + axis during run
     render();
-    logPoint();
-  },1000);
+    updateXAxisLimits(false);
+    chart.update('none');
+  }, 250);
 }
 
-function stopLogging(){clearInterval(timerInterval);timerInterval=null;}
-
-/* ---------- Possession Toggle ---------- */
-function togglePossession(){
-  if(!possessionActive){
-    oppStartMs=Date.now();possessionActive=true;
-    btnPos.textContent="Stop Opposition Possession";btnPos.classList.add("active");
-    startLogging();
-  }else{
-    oppSecondsAccum+=(Date.now()-oppStartMs)/1000;
-    possessionActive=false;oppStartMs=null;
-    stopLogging();render();logPoint(true);
-    const total=Math.ceil(oppSecondsAccum);
-    intensityChart.options.scales.x.max=total;
-    intensityChart.options.scales.x.ticks.stepSize=dynamicTickSpacing(total);
-    intensityChart.update();
-    btnPos.textContent="Start Opposition Possession";btnPos.classList.remove("active");
+function stopLogging(){
+  if (samplerInterval) {
+    clearInterval(samplerInterval);
+    samplerInterval = null;
   }
 }
 
-/* ---------- Button Events ---------- */
-document.getElementById("tacklePlus").onclick=e=>{
-  tackles++;render();e.target.classList.add("flash");
-  setTimeout(()=>e.target.classList.remove("flash"),200);
-};
-document.getElementById("tackleMinus").onclick=e=>{
-  if(tackles>0)tackles--;render();e.target.classList.add("flash");
-  setTimeout(()=>e.target.classList.remove("flash"),200);
-};
-btnPos.onclick=togglePossession;
+/* ------------------------ UI RENDER ------------------------ */
+function render(){
+  elTackles.textContent = String(tackles);
+  const seconds = getCurrentOppSeconds();
+  elTimeDisplay.textContent = formatTime(seconds);
+  elIndex.textContent = getLiveIntensity().toFixed(2);
+}
 
-/* ---------- Reset Slider ---------- */
+/* ------------------------ CONTROLS ------------------------ */
+function togglePossession(){
+  if(!possessionActive){
+    // START
+    oppStartMs = Date.now();
+    possessionActive = true;
+    btnPos.textContent = "Stop Opposition Possession";
+    btnPos.classList.add("active");
+
+    // If fresh start, align logging to 0 and kick off
+    if (dataset.data.length === 0) {
+      nextLogAt = 0;
+      pushSample(0);
+    } else {
+      // Resume: keep nextLogAt aligned to last logged boundary
+      const lastX = dataset.data[dataset.data.length-1].x;
+      nextLogAt = lastX;
+    }
+
+    startLogging();
+  } else {
+    // STOP
+    oppSecondsAccum += (Date.now() - oppStartMs)/1000;
+    possessionActive = false;
+    oppStartMs = null;
+    btnPos.textContent = "Start Opposition Possession";
+    btnPos.classList.remove("active");
+
+    // Force a final exact-end sample so the line hits the right edge
+    const finalSecs = Math.max(0, Math.round(oppSecondsAccum));
+    const lastX = dataset.data.length ? dataset.data[dataset.data.length-1].x : -1;
+
+    if (finalSecs > lastX) {
+      pushSample(finalSecs);
+    } else if (finalSecs < lastX) {
+      // If we overshot a touch (shouldn't happen, but guard): replace last point
+      dataset.data[dataset.data.length-1] = { x: finalSecs, y: intensityAtSeconds(finalSecs) };
+    }
+
+    stopLogging();
+    render();
+    updateXAxisLimits(true);
+    chart.update();
+  }
+}
+
+document.getElementById("tacklePlus").onclick = (e)=>{
+  tackles++;
+  render();
+  e.target.classList.add('flash');
+  setTimeout(()=>e.target.classList.remove('flash'),200);
+};
+document.getElementById("tackleMinus").onclick = (e)=>{
+  if(tackles>0) tackles--;
+  render();
+  e.target.classList.add('flash');
+  setTimeout(()=>e.target.classList.remove('flash'),200);
+};
+btnPos.onclick = togglePossession;
+
+/* ------------------------ REPORT (PNG) ------------------------ */
+document.getElementById("reportBtn").addEventListener("click", async () => {
+  const reportCanvas=document.createElement("canvas");
+  reportCanvas.width=1000;
+  reportCanvas.height=900;
+  const c2=reportCanvas.getContext("2d");
+
+  // Background
+  c2.fillStyle="#fff";
+  c2.fillRect(0,0,reportCanvas.width,reportCanvas.height);
+
+  // Header
+  c2.fillStyle="#000";
+  c2.font="28px Arial";
+  c2.fillText("Laois Intensity Index Report",40,50);
+
+  // Timestamp
+  const now=new Date();
+  const ts=now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})+" – "+now.toLocaleDateString();
+  c2.font="16px Arial";
+  c2.fillText(ts,40,80);
+
+  // Stats
+  c2.font="22px Arial";
+  c2.fillText("Intensity Index Rating: "+getLiveIntensity().toFixed(2),40,120);
+  c2.fillText("Tackles: "+tackles,40,155);
+  c2.fillText("Opposition Possession Time: "+formatTime(getCurrentOppSeconds()),40,190);
+
+  // Chart snapshot
+  const chartCanvas=document.getElementById("intensityChart");
+  const img=new Image();
+  img.src=chartCanvas.toDataURL("image/png");
+  await new Promise((resolve)=>{img.onload=resolve; img.onerror=resolve;});
+  c2.drawImage(img,40,240,920,600);
+
+  // Download
+  const a=document.createElement("a");
+  a.download="Laois_Intensity_Report.png";
+  a.href=reportCanvas.toDataURL("image/png");
+  a.click();
+});
+
+/* ------------------------ RESET SLIDER ------------------------ */
 let startX=0,currentX=0,dragging=false;
 const slider=document.getElementById("resetSlider"),
       handle=document.getElementById("sliderHandle"),
       sliderText=document.getElementById("sliderText");
+
 function resetAll(){
-  tackles=0;oppSecondsAccum=0;oppStartMs=null;possessionActive=false;
-  nextLogThreshold=LOG_INTERVAL;
-  chartData.labels=[];chartData.datasets[0].data=[];
-  intensityChart.options.scales.x.max=undefined;
-  intensityChart.update();
-  btnPos.textContent="Start Opposition Possession";btnPos.classList.remove("active");
+  tackles=0; oppSecondsAccum=0; oppStartMs=null; possessionActive=false;
+  nextLogAt=0;
+  dataset.data.length = 0;
+  chart.options.scales.x.min = 0;
+  chart.options.scales.x.max = 60;
+  chart.update();
+
+  btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
   render();
-  slider.classList.add("complete");sliderText.textContent="Game Reset";
-  handle.style.left=(slider.offsetWidth-handle.offsetWidth-6)+"px";
-  setTimeout(()=>{slider.classList.remove("complete");handle.style.left="6px";
-  sliderText.textContent="Slide to Reset";},1500);
+  slider.classList.add("complete"); sliderText.textContent="Game Reset";
+  handle.style.left=(slider.offsetWidth - handle.offsetWidth - 6)+"px";
+  setTimeout(()=>{
+    slider.classList.remove("complete");
+    handle.style.left="6px";
+    sliderText.textContent="Slide to Reset";
+  },1500);
 }
-function startDrag(e){dragging=true;startX=(e.touches?e.touches[0].clientX:e.clientX);}
+function startDrag(e){ dragging=true; startX=(e.touches?e.touches[0].clientX:e.clientX); }
 function onDrag(e){
-  if(!dragging)return;
+  if(!dragging) return;
   const clientX=(e.touches?e.touches[0].clientX:e.clientX);
-  const dx=clientX-startX;const max=slider.offsetWidth-handle.offsetWidth-6;
-  currentX=Math.min(Math.max(6,dx+6),max);handle.style.left=currentX+"px";
+  const dx=clientX-startX; const max=slider.offsetWidth - handle.offsetWidth - 6;
+  currentX=Math.min(Math.max(6,dx+6),max); handle.style.left=currentX+"px";
 }
 function endDrag(){
-  if(!dragging)return;dragging=false;
-  const max=slider.offsetWidth-handle.offsetWidth-10;
-  if(currentX>=max-4)resetAll();else handle.style.left="6px";
+  if(!dragging) return; dragging=false;
+  const max=slider.offsetWidth - handle.offsetWidth - 10;
+  if(currentX>=max-4) resetAll(); else handle.style.left="6px";
 }
 handle.addEventListener("mousedown",startDrag);
-handle.addEventListener("touchstart",startDrag);
+handle.addEventListener("touchstart",startDrag,{passive:true});
 window.addEventListener("mousemove",onDrag);
-window.addEventListener("touchmove",onDrag);
+window.addEventListener("touchmove",onDrag,{passive:false});
 window.addEventListener("mouseup",endDrag);
 window.addEventListener("touchend",endDrag);
 
-/* ---------- Keyboard Shortcuts ---------- */
+/* ------------------------ MOBILE GRAPH REPOSITIONING ------------------------ */
+document.addEventListener("DOMContentLoaded", () => {
+  const left=document.querySelector(".left");
+  const right=document.querySelector(".right");
+  const graph=document.getElementById("graphWrapper");
+  const reportBtn=document.getElementById("reportBtn");
+
+  function repositionGraph(){
+    const isMobile=window.innerWidth<1024;
+    const graphParent=graph.parentElement;
+    if(isMobile && graphParent!==left){
+      left.insertBefore(graph,reportBtn);
+    }else if(!isMobile && graphParent!==right){
+      right.appendChild(graph);
+    }
+  }
+  repositionGraph();
+  window.addEventListener("resize",repositionGraph);
+});
+
+/* ------------------------ KEYBOARD SHORTCUTS ------------------------ */
 document.addEventListener("keydown",(e)=>{
   if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
   switch(e.key.toLowerCase()){
     case " ":
     case "spacebar":
-      e.preventDefault();btnPos.click();break;
+      e.preventDefault();
+      btnPos.click();
+      break;
     case "t":
-      e.preventDefault();document.getElementById("tacklePlus").click();break;
+      e.preventDefault();
+      document.getElementById("tacklePlus").click();
+      break;
     case "r":
-      e.preventDefault();document.getElementById("tackleMinus").click();break;
+      e.preventDefault();
+      document.getElementById("tackleMinus").click();
+      break;
   }
 });
 
+/* Initial render */
 render();
 </script>
 </body>
 </html>
-
