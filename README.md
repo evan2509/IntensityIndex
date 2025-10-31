@@ -1,2 +1,2 @@
-Keyboard shortcuts added and text for keyboard shortcuts too. 
-Generate report button stopped working. 
+Fixed graphing issues so full opposition possession time is shown in the graph. 
+Graph also changes dynamically with each second of opposition possession elapsed. 
