@@ -196,7 +196,7 @@ const LOG_INTERVAL=5000; // every 5 seconds
 
 function startLogging(){
   if(logInterval) return;
-  logInterval=setInterval(()=>{
+  const log=()=>{
     if(!possessionActive) return;
     const secs=getCurrentOppSeconds();
     const intensity=getIntensity();
@@ -204,24 +204,52 @@ function startLogging(){
     chartData.datasets[0].data.push(intensity);
     updateXAxisTicks();
     intensityChart.update();
-  },LOG_INTERVAL);
+    logInterval=setTimeout(log,LOG_INTERVAL);
+  };
+  log();
 }
 
-function stopLogging(){clearInterval(logInterval);logInterval=null;}
+function stopLogging(){
+  clearTimeout(logInterval);
+  logInterval=null;
+}
 
+/* -------- Live Timer -------- */
+let timerInterval=null;
+function startTimer(){
+  if(timerInterval) return;
+  timerInterval=setInterval(()=>{
+    if(possessionActive) render();
+  },250); // update UI 4x per second
+}
+function stopTimer(){
+  clearInterval(timerInterval);
+  timerInterval=null;
+}
+
+/* -------- Possession Toggle -------- */
 function togglePossession(){
   if(!possessionActive){
-    oppStartMs=Date.now();possessionActive=true;
-    btnPos.textContent="Stop Opposition Possession";btnPos.classList.add("active");
+    oppStartMs=Date.now();
+    possessionActive=true;
+    btnPos.textContent="Stop Opposition Possession";
+    btnPos.classList.add("active");
     startLogging();
+    startTimer();
   }else{
-    oppSecondsAccum+=(Date.now()-oppStartMs)/1000;possessionActive=false;oppStartMs=null;
-    btnPos.textContent="Start Opposition Possession";btnPos.classList.remove("active");
+    oppSecondsAccum+=(Date.now()-oppStartMs)/1000;
+    possessionActive=false;
+    oppStartMs=null;
+    btnPos.textContent="Start Opposition Possession";
+    btnPos.classList.remove("active");
     stopLogging();
+    stopTimer();
+    render(); // final update
   }
 }
-document.getElementById("tacklePlus").onclick=e=>{tackles++;render();};
-document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();};
+
+document.getElementById("tacklePlus").onclick=()=>{tackles++;render();};
+document.getElementById("tackleMinus").onclick=()=>{if(tackles>0)tackles--;render();};
 btnPos.onclick=togglePossession;
 
 /* -------- Reset -------- */
@@ -232,7 +260,7 @@ let dragging=false,startX=0,currentX=0;
 function resetAll(){
   tackles=0;oppSecondsAccum=0;oppStartMs=null;possessionActive=false;
   chartData.labels=[];chartData.datasets[0].data=[];
-  stopLogging();render();
+  stopLogging();stopTimer();render();
   btnPos.textContent="Start Opposition Possession";btnPos.classList.remove("active");
   slider.classList.add("complete");sliderText.textContent="Game Reset";
   handle.style.left=(slider.offsetWidth-handle.offsetWidth-6)+"px";
