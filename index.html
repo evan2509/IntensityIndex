@@ -269,35 +269,68 @@ function getIntensity(){
 
 /* -------- Chart.js Setup -------- */
 const ctx=document.getElementById('intensityChart').getContext('2d');
-const chartData={ labels:[], datasets:[{ 
-  label:'Intensity Index',
-  data:[],
-  borderColor:'#1e88e5',
-  backgroundColor:'rgba(30,136,229,0.15)',
-  borderWidth:2, fill:true, tension:0.3, spanGaps:false,
-  pointRadius:(ctx)=>{const t=ctx.chart.data.labels.length;
-    if(t<=20)return 5; else if(t<=60)return(ctx.dataIndex%3===0?4:0);
-    else if(t<=120)return(ctx.dataIndex%6===0?3:0); else return 0;},
-  pointHoverRadius:6, pointBackgroundColor:'#1e88e5', pointBorderColor:'#fff'
-}]};
+const chartData={ 
+  datasets:[{ 
+    label:'Intensity Index',
+    data:[],
+    borderColor:'#1e88e5',
+    backgroundColor:'rgba(30,136,229,0.15)',
+    borderWidth:3, 
+    fill:true, 
+    tension:0.4,
+    pointRadius:0,
+    pointHoverRadius:0, 
+    pointBackgroundColor:'#1e88e5', 
+    pointBorderColor:'#1e88e5',
+    pointBorderWidth:0
+  }]
+};
 
 const intensityChart=new Chart(ctx,{
-  type:'line', data:chartData,
+  type:'line', 
+  data:chartData,
   options:{
-    responsive:true, maintainAspectRatio:false,
+    responsive:true, 
+    maintainAspectRatio:false,
+    animation: false,
+    parsing: false,
+    normalized: true,
+    spanGaps: false,
     scales:{
-      x:{ title:{display:true,text:'Opp Poss Time (MM:SS)'},
-          ticks:{autoSkip:true,maxTicksLimit:10,
-            callback:(val,idx)=>{const s=parseFloat(chartData.labels[idx]);
-              const m=Math.floor(s/60), ss=Math.floor(s%60); return `${m}:${String(ss).padStart(2,'0')}`;}}},
-      y:{ title:{display:true,text:'Intensity Index'}, beginAtZero:true }
+      x:{ 
+        type: 'linear',
+        title:{display:true,text:'Opp Poss Time (MM:SS)'},
+        ticks:{
+          callback:(val)=>{
+            const m=Math.floor(val/60), ss=Math.floor(val%60); 
+            return `${m}:${String(ss).padStart(2,'0')}`;
+          }
+        }
+      },
+      y:{ 
+        title:{display:true,text:'Intensity Index'}, 
+        beginAtZero:true
+      }
     },
-    plugins:{ legend:{display:false} }
+    plugins:{ 
+      legend:{display:false},
+      decimation: {
+        enabled: false
+      }
+    },
+    elements: {
+      line: {
+        borderWidth: 3
+      },
+      point: {
+        radius: 0
+      }
+    }
   }
 });
 
-// Store logged data points separately from display data
-let loggedDataPoints = [];
+// Store ALL data points - every single one
+let allDataPoints = [{x: 0, y: 0}];
 
 function render(){
   elTackles.textContent=tackles;
@@ -310,77 +343,130 @@ function updateChart(){
   const currentOppSecs = getCurrentOppSeconds();
   const currentIntensity = getIntensity();
   
-  // Build complete data including start (0,0), logged points, and current position
-  const completeLabels = [];
-  const completeData = [];
+  // Create a fresh array with all points
+  const displayData = [...allDataPoints];
   
-  // Always start at 0:00
-  completeLabels.push('0');
-  completeData.push(0);
-  
-  // Add all logged data points
-  loggedDataPoints.forEach(point => {
-    completeLabels.push(point.time.toFixed(0));
-    completeData.push(point.intensity);
-  });
-  
-  // Add current position if possession is active or if we have accumulated time
+  // Add current position if we have time accumulated
   if(currentOppSecs > 0){
-    completeLabels.push(currentOppSecs.toFixed(0));
-    completeData.push(currentIntensity.toFixed(2));
+    const lastPoint = displayData[displayData.length - 1];
+    const currentPoint = {x: currentOppSecs, y: parseFloat(currentIntensity.toFixed(2))};
+    
+    // Only add if it's different from last point
+    if(!lastPoint || lastPoint.x !== currentPoint.x || lastPoint.y !== currentPoint.y) {
+      displayData.push(currentPoint);
+    }
   }
   
-  // Update chart
-  chartData.labels = completeLabels;
-  chartData.datasets[0].data = completeData;
-  intensityChart.update();
+  // Update chart with ALL data points
+  chartData.datasets[0].data = displayData;
+  intensityChart.update('none'); // 'none' mode = no animation, instant update
 }
 
 let timerInterval=null;
-let nextLogThreshold=5;
-const LOG_INTERVAL_OPP_SECONDS=5;
+let lastLoggedTime = 0;
+const LOG_INTERVAL_SECONDS = 1; // Log every second for maximum accuracy
 
 function startLogging(){
   if(timerInterval) return;
   timerInterval=setInterval(()=>{
     if(!possessionActive) return;
+    
     render();
-    const oppSecs=getCurrentOppSeconds();
-    if(oppSecs>=nextLogThreshold){
-      const intensity=getIntensity();
-      // Store in logged data points array
-      loggedDataPoints.push({
-        time: oppSecs,
-        intensity: parseFloat(intensity.toFixed(2))
-      });
-      // Keep only last 100 logged points
-      if(loggedDataPoints.length>100){
-        loggedDataPoints.shift();
-      }
-      nextLogThreshold+=LOG_INTERVAL_OPP_SECONDS;
+    
+    const oppSecs = getCurrentOppSeconds();
+    const intensity = getIntensity();
+    
+    // Log every second
+    if(Math.floor(oppSecs) > lastLoggedTime) {
+      const newPoint = {
+        x: oppSecs,
+        y: parseFloat(intensity.toFixed(2))
+      };
+      
+      // Add to our permanent data points array
+      allDataPoints.push(newPoint);
+      lastLoggedTime = Math.floor(oppSecs);
     }
+    
     updateChart();
-  },1000);
+  }, 1000);
 }
+
 function stopLogging(){ 
   clearInterval(timerInterval); 
   timerInterval=null;
-  updateChart(); // Update chart one final time when stopping
+  
+  // Log final point when stopping
+  const oppSecs = getCurrentOppSeconds();
+  const intensity = getIntensity();
+  if(oppSecs > 0) {
+    allDataPoints.push({
+      x: oppSecs,
+      y: parseFloat(intensity.toFixed(2))
+    });
+  }
+  
+  updateChart();
 }
 
 function togglePossession(){
   if(!possessionActive){
-    oppStartMs=Date.now(); possessionActive=true;
-    btnPos.textContent="Stop Opposition Possession"; btnPos.classList.add("active");
+    oppStartMs=Date.now(); 
+    possessionActive=true;
+    btnPos.textContent="Stop Opposition Possession"; 
+    btnPos.classList.add("active");
     startLogging();
   }else{
-    oppSecondsAccum+=(Date.now()-oppStartMs)/1000; possessionActive=false; oppStartMs=null;
-    btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
-    stopLogging(); render();
+    oppSecondsAccum+=(Date.now()-oppStartMs)/1000; 
+    possessionActive=false; 
+    oppStartMs=null;
+    btnPos.textContent="Start Opposition Possession"; 
+    btnPos.classList.remove("active");
+    stopLogging(); 
+    render();
   }
 }
-document.getElementById("tacklePlus").onclick=e=>{tackles++;render();updateChart();e.target.classList.add('flash');setTimeout(()=>e.target.classList.remove('flash'),200);};
-document.getElementById("tackleMinus").onclick=e=>{if(tackles>0)tackles--;render();updateChart();e.target.classList.add('flash');setTimeout(()=>e.target.classList.remove('flash'),200);};
+
+document.getElementById("tacklePlus").onclick=e=>{
+  tackles++;
+  
+  // Immediately log this tackle's impact
+  const oppSecs = getCurrentOppSeconds();
+  const intensity = getIntensity();
+  if(oppSecs > 0) {
+    allDataPoints.push({
+      x: oppSecs,
+      y: parseFloat(intensity.toFixed(2))
+    });
+  }
+  
+  render();
+  updateChart();
+  e.target.classList.add('flash');
+  setTimeout(()=>e.target.classList.remove('flash'),200);
+};
+
+document.getElementById("tackleMinus").onclick=e=>{
+  if(tackles>0) {
+    tackles--;
+    
+    // Immediately log this change's impact
+    const oppSecs = getCurrentOppSeconds();
+    const intensity = getIntensity();
+    if(oppSecs > 0) {
+      allDataPoints.push({
+        x: oppSecs,
+        y: parseFloat(intensity.toFixed(2))
+      });
+    }
+  }
+  
+  render();
+  updateChart();
+  e.target.classList.add('flash');
+  setTimeout(()=>e.target.classList.remove('flash'),200);
+};
+
 btnPos.onclick=togglePossession;
 
 /* -------- Generate PNG Report -------- */
@@ -430,18 +516,35 @@ let startX=0,currentX=0,dragging=false;
 const slider=document.getElementById("resetSlider"),
       handle=document.getElementById("sliderHandle"),
       sliderText=document.getElementById("sliderText");
+      
 function resetAll(){
-  tackles=0; oppSecondsAccum=0; oppStartMs=null; possessionActive=false;
-  nextLogThreshold=LOG_INTERVAL_OPP_SECONDS;
-  loggedDataPoints = [];
-  chartData.labels=[]; chartData.datasets[0].data=[]; intensityChart.update();
-  btnPos.textContent="Start Opposition Possession"; btnPos.classList.remove("active");
+  tackles=0; 
+  oppSecondsAccum=0; 
+  oppStartMs=null; 
+  possessionActive=false;
+  lastLoggedTime=0;
+  
+  // Reset to just the starting point
+  allDataPoints = [{x: 0, y: 0}];
+  
+  chartData.datasets[0].data = [{x: 0, y: 0}];
+  intensityChart.update('none');
+  
+  btnPos.textContent="Start Opposition Possession"; 
+  btnPos.classList.remove("active");
   render();
-  slider.classList.add("complete"); sliderText.textContent="Game Reset";
+  
+  slider.classList.add("complete"); 
+  sliderText.textContent="Game Reset";
   handle.style.left=(slider.offsetWidth-handle.offsetWidth-6)+"px";
-  setTimeout(()=>{ slider.classList.remove("complete"); handle.style.left="6px";
-    sliderText.textContent="Slide to Reset"; },1500);
+  
+  setTimeout(()=>{ 
+    slider.classList.remove("complete"); 
+    handle.style.left="6px";
+    sliderText.textContent="Slide to Reset"; 
+  },1500);
 }
+
 function startDrag(e){ dragging=true; startX=(e.touches?e.touches[0].clientX:e.clientX); }
 function onDrag(e){
   if(!dragging) return;
