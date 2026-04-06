@@ -811,7 +811,7 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.85);
+  background:rgba(0,0,0,.75);
   z-index:300;
   backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px);
@@ -827,8 +827,8 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   background:#0d1117;
   color:#e6edf3;
   width:100%;
-  max-width:960px;
-  height:100%;
+  max-width:min(96vw, calc((100dvh - 2.4rem) * 16/9));
+  aspect-ratio:16/9;
   border-radius:12px;
   overflow:hidden;
   display:flex;
@@ -837,16 +837,27 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   border:1px solid #263044;
   font-family:'Barlow',sans-serif;
 }
+@media (prefers-color-scheme: light) {
+  .rep-card {
+    background:#f0f4fa;
+    color:#0e0f11;
+    border-color:#b8c6dc;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+  }
+}
 
 /* Header strip */
 .rep-hd {
   background:#0a0f1a;
-  border-bottom:1px solid #1a73e8;
+  border-bottom:2px solid #1a73e8;
   padding:.75rem 1.2rem;
   display:flex;
   justify-content:space-between;
   align-items:center;
   flex-shrink:0;
+}
+@media (prefers-color-scheme: light) {
+  .rep-hd { background:#0a0f1a; } /* keep dark header in light mode — looks sharp */
 }
 .rep-hd-left h2 {
   font-family:'Barlow Condensed',sans-serif;
@@ -876,7 +887,7 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   transition:background .15s;
   flex-shrink:0;
 }
-.rep-close:hover { background:rgba(255,255,255,.15); }
+.rep-close:hover { background:rgba(255,255,255,.18); }
 .rep-save {
   font-family:'Barlow Condensed',sans-serif;
   font-size:.72rem;
@@ -893,14 +904,18 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
 }
 .rep-save:hover { filter:brightness(1.1); }
 
-/* Body: chart top, stats bottom */
+/* Body — HT: column (chart + stats bar), FT: row (chart | 3x3 grid) */
 .rep-body {
   display:flex;
   flex-direction:column;
   flex:1;
   min-height:0;
-  padding:.85rem 1rem .85rem;
-  gap:.75rem;
+  padding:.7rem .85rem .7rem;
+  gap:.55rem;
+}
+.rep-body.ft-layout {
+  flex-direction:row;
+  gap:.7rem;
 }
 
 /* Chart area */
@@ -911,7 +926,9 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   border-radius:8px;
   border:1px solid #263044;
   overflow:hidden;
-  position:relative;
+}
+@media (prefers-color-scheme: light) {
+  .rep-chart-wrap { background:#fff; border-color:#c4cdd9; }
 }
 .rep-chart-wrap img {
   width:100%;
@@ -920,56 +937,132 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   object-fit:fill;
 }
 
-/* Stats row at bottom */
-.rep-stats {
+/* FT 3x3 grid panel — sits to the right of chart */
+.rep-grid-panel {
   display:flex;
-  gap:.6rem;
-  flex-shrink:0;
-}
-.rep-stat-group {
-  display:flex;
+  flex-direction:column;
   gap:.5rem;
-  flex:1;
-}
-.rep-stat-divider {
-  width:1px;
-  background:#263044;
+  width:30%;
   flex-shrink:0;
 }
-.rep-stat {
+.rep-grid-row-label {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.52rem;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:#4d6070;
+  padding-bottom:3px;
+  border-bottom:1px solid #263044;
+  margin-bottom:1px;
+}
+@media (prefers-color-scheme: light) {
+  .rep-grid-row-label { color:#6b7280; border-color:#c4cdd9; }
+}
+.rep-grid-section {
+  display:flex;
+  flex-direction:column;
+  gap:.35rem;
   flex:1;
+}
+.rep-grid-row {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:.35rem;
+  flex:1;
+}
+.rep-gstat {
   background:#131c2e;
   border:1px solid #263044;
-  border-radius:7px;
-  padding:.55rem .5rem;
+  border-radius:6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:.3rem .25rem;
+  gap:2px;
+  flex:1;
+  min-height:0;
+}
+@media (prefers-color-scheme: light) {
+  .rep-gstat { background:#fff; border-color:#c4cdd9; }
+}
+.rep-gstat.hi { background:#0d1b2e; border-color:#1a73e8; }
+@media (prefers-color-scheme: light) {
+  .rep-gstat.hi { background:#dce6f5; border-color:#1a73e8; }
+}
+.rep-gstat.hi .gv  { color:#4a9eff; }
+.rep-gstat.good .gv { color:#22c55e; }
+.rep-gstat.bad  .gv { color:#e74c3c; }
+.gv {
+  font-family:'DM Mono',monospace;
+  font-size:1.05rem;
+  font-weight:500;
+  color:#e6edf3;
+  line-height:1;
+  white-space:nowrap;
+}
+@media (prefers-color-scheme: light) { .gv { color:#0e0f11; } }
+.gl {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.48rem;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:#4d6070;
+  white-space:nowrap;
+}
+@media (prefers-color-scheme: light) { .gl { color:#6b7280; } }
+
+/* HT stats row at bottom (unchanged) */
+.rep-stats {
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:.45rem;
+  flex-shrink:0;
+}
+.rep-stat-divider { display:none; }
+.rep-stat-group { display:contents; }
+.rep-stat {
+  background:#131c2e;
+  border:1px solid #263044;
+  border-radius:6px;
+  padding:.45rem .4rem;
   text-align:center;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:3px;
+  gap:2px;
 }
-.rep-stat.hi {
-  background:#0d1b2e;
-  border-color:#1a73e8;
+@media (prefers-color-scheme: light) {
+  .rep-stat { background:#fff; border-color:#c4cdd9; }
+}
+.rep-stat.hi { background:#0d1b2e; border-color:#1a73e8; }
+@media (prefers-color-scheme: light) {
+  .rep-stat.hi { background:#dce6f5; border-color:#1a73e8; }
 }
 .rep-stat.hi .rsv { color:#4a9eff; }
 .rep-stat.good .rsv { color:#22c55e; }
 .rep-stat.bad  .rsv { color:#e74c3c; }
 .rsv {
   font-family:'DM Mono',monospace;
-  font-size:1.35rem;
+  font-size:1.15rem;
   font-weight:500;
   color:#e6edf3;
   line-height:1;
 }
+@media (prefers-color-scheme: light) { .rsv { color:#0e0f11; } }
 .rsl {
   font-family:'Barlow Condensed',sans-serif;
-  font-size:.55rem;
+  font-size:.52rem;
   font-weight:700;
-  letter-spacing:.12em;
+  letter-spacing:.1em;
   text-transform:uppercase;
   color:#4d6070;
+}
+@media (prefers-color-scheme: light) {
+  .rsl { color:#6b7280; }
 }
 
 /* ─── FLASH ────────────────────────────────────────────────── */
@@ -1153,7 +1246,7 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
         <button class="rep-close" id="closeRep">✕</button>
       </div>
     </div>
-    <div class="rep-body">
+    <div class="rep-body" id="repBody">
       <div class="rep-chart-wrap" id="repChartWrap"></div>
       <div class="rep-stats" id="repStats"></div>
     </div>
@@ -1693,6 +1786,7 @@ function render() {
 ══════════════════════════════════════════════════════════ */
 function buildChart(pts, target, htSec) {
   const W=900,H=520, sc=2;
+  const dark = isDark();
   const oc=document.createElement('canvas');
   oc.width=W*sc; oc.height=H*sc;
   const c=oc.getContext('2d'); c.scale(sc,sc);
@@ -1702,20 +1796,22 @@ function buildChart(pts, target, htSec) {
   const toX=v=>P.l+(v/xMax)*(W-P.l-P.r);
   const toY=v=>P.t+(1-v/yMax)*(H-P.t-P.b);
 
-  c.fillStyle='#131c2e'; c.fillRect(0,0,W,H);
+  c.fillStyle = dark ? '#131c2e' : '#ffffff'; c.fillRect(0,0,W,H);
+  const gc = dark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)';
+  const lc = dark ? '#7d8590' : '#6b7280';
   c.font='13px DM Mono,monospace';
   for(let i=0;i<=4;i++){
     const v=(i/4)*yMax,y=toY(v);
-    c.strokeStyle='rgba(255,255,255,.06)';c.lineWidth=1;
+    c.strokeStyle=gc;c.lineWidth=1;
     c.beginPath();c.moveTo(P.l,y);c.lineTo(W-P.r,y);c.stroke();
-    c.fillStyle='#7d8590';c.textAlign='right';c.fillText(v.toFixed(1),P.l-8,y+4);
+    c.fillStyle=lc;c.textAlign='right';c.fillText(v.toFixed(1),P.l-8,y+4);
   }
   const xstep = xMax<=10?1:xMax<=20?2:xMax<=40?5:10;
   for(let m=0;m<=Math.ceil(xMax);m+=xstep){
     if(toX(m)>W-P.r+2) break;
-    c.strokeStyle='rgba(255,255,255,.06)';c.lineWidth=1;
+    c.strokeStyle=gc;c.lineWidth=1;
     c.beginPath();c.moveTo(toX(m),P.t);c.lineTo(toX(m),H-P.b);c.stroke();
-    c.fillStyle='#7d8590';c.font='13px DM Mono,monospace';c.textAlign='center';c.fillText(m+"'",toX(m),H-P.b+18);
+    c.fillStyle=lc;c.font='13px DM Mono,monospace';c.textAlign='center';c.fillText(m+"'",toX(m),H-P.b+18);
   }
   if(htSec){
     const hx=toX(htSec/60);
@@ -1748,7 +1844,8 @@ function buildChart(pts, target, htSec) {
     c.strokeStyle='#4a9eff';c.lineWidth=2.5;c.stroke();
     c.lineTo(toX(pts[pts.length-1].x),toY(0));c.lineTo(toX(pts[0].x),toY(0));c.closePath();
     const g=c.createLinearGradient(0,P.t,0,H-P.b);
-    g.addColorStop(0,'rgba(74,158,255,.25)');g.addColorStop(1,'rgba(74,158,255,.02)');
+    g.addColorStop(0, dark?'rgba(74,158,255,.25)':'rgba(26,115,232,.15)');
+    g.addColorStop(1, dark?'rgba(74,158,255,.02)':'rgba(26,115,232,.01)');
     c.fillStyle=g;c.fill();
   }
   pts.forEach(p=>{c.beginPath();c.arc(toX(p.x),toY(p.y),3,0,Math.PI*2);c.fillStyle='rgba(26,115,232,.55)';c.fill();});
@@ -1784,107 +1881,405 @@ function genReport(type) {
   }
   const chartSrc = pts.length>1 ? buildChart(pts, tgt, isHT?null:htSec) : null;
 
+  // Set body layout class
+  const body = document.getElementById('repBody');
+  body.className = isHT ? 'rep-body' : 'rep-body ft-layout';
+
   // Chart area
   const chartWrap = document.getElementById('repChartWrap');
   chartWrap.innerHTML = chartSrc
     ? `<img src="${chartSrc}" style="width:100%;height:100%;display:block;object-fit:fill;"/>`
     : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#4d6070;font-family:var(--mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;">Not enough data yet</div>`;
 
-  // Build stats
   const stats = document.getElementById('repStats');
   const ii   = isHT ? h1II : ftII;
   const diff = ii!==null && tgt>0 ? ii-tgt : null;
-  const col  = diff!==null ? (diff>=0?'#22c55e':'#e74c3c') : '#e6edf3';
+  const dCls = diff!==null ? (diff>=0?'good':'bad') : '';
+  const dVal = diff!==null ? (diff>=0?'+':'')+diff.toFixed(1) : '—';
 
-  function stat(val, label, cls='') {
-    return `<div class="rep-stat${cls?(' '+cls):''}"><span class="rsv">${val}</span><span class="rsl">${label}</span></div>`;
+  function gs(val, label, cls='') {
+    return `<div class="rep-gstat${cls?' '+cls:''}"><span class="gv">${val}</span><span class="gl">${label}</span></div>`;
   }
-  function divider() { return '<div class="rep-stat-divider"></div>'; }
+  function st(val, label, cls='') {
+    return `<div class="rep-stat${cls?' '+cls:''}"><span class="rsv">${val}</span><span class="rsl">${label}</span></div>`;
+  }
 
-  let statsHTML = '';
   if (isHT) {
-    statsHTML = `
+    // HT: chart top, stat bar bottom (unchanged)
+    body.querySelector('#repChartWrap') || body.appendChild(chartWrap);
+    stats.style.display = '';
+    stats.innerHTML = `
       <div class="rep-stat-group">
-        ${stat(fmtII(h1II), 'Intensity Index', 'hi')}
-        ${stat(S.h1Act, 'Key Actions')}
-        ${stat(fmtOpp(S.h1Opp||0), 'Opp Possession')}
+        ${st(fmtII(h1II),'Intensity Index','hi')}
+        ${st(S.h1Act,'Key Actions')}
+        ${st(fmtOpp(S.h1Opp||0),'Opp Possession')}
       </div>
-      ${tgt>0?`${divider()}<div class="rep-stat-group">
-        ${stat(tgt,'Target II')}
-        ${stat(`<span style="color:${col}">${diff!==null?(diff>=0?'+':'')+diff.toFixed(1):'—'}</span>`,'vs Target', diff!==null?(diff>=0?'good':'bad'):'')}
-        ${stat(`<span style="color:${col}">${h1II!==null&&h1II>=tgt?'✓':'✗'}</span>`,'Met Target',h1II!==null?(h1II>=tgt?'good':'bad'):'')}
+      ${tgt>0?`<div class="rep-stat-group">
+        ${st(tgt,'Target II')}
+        ${st(dVal,'vs Target',dCls)}
+        ${st(h1II!==null&&h1II>=tgt?'✓':'✗','Met Target',dCls)}
       </div>`:''}`;
   } else {
-    statsHTML = `
-      <div class="rep-stat-group">
-        ${S.h1Act!==null?stat(fmtII(h1II),'H1 Index'):''}
-        ${S.h1Act!==null?stat(fmtII(h2II),'H2 Index'):''}
-        ${stat(fmtII(ftII),'Full Time II','hi')}
+    // FT: chart left, 3x3 grid right
+    stats.style.display = 'none';
+
+    // Remove old grid panel if present
+    const old = body.querySelector('.rep-grid-panel');
+    if (old) old.remove();
+
+    const ftDiff  = ftII!==null&&tgt>0 ? ftII-tgt : null;
+    const ftDCls  = ftDiff!==null?(ftDiff>=0?'good':'bad'):'';
+    const ftDVal  = ftDiff!==null?(ftDiff>=0?'+':'')+ftDiff.toFixed(1):'—';
+
+    const panel = document.createElement('div');
+    panel.className = 'rep-grid-panel';
+    panel.innerHTML = `
+      <div class="rep-grid-section">
+        <div class="rep-grid-row-label">1st Half</div>
+        <div class="rep-grid-row">
+          ${gs(fmtII(h1II),'Intensity Index','hi')}
+          ${gs(S.h1Act!==null?S.h1Act:'—','Key Actions')}
+          ${gs(fmtOpp(S.h1Opp||0),'Opp Possession')}
+        </div>
       </div>
-      ${divider()}
-      <div class="rep-stat-group">
-        ${S.h1Act!==null?stat(S.h1Act,'H1 Actions'):''}
-        ${S.h1Act!==null?stat(h2Act,'H2 Actions'):''}
-        ${stat(ftAct,'Total Actions')}
+      <div class="rep-grid-section">
+        <div class="rep-grid-row-label">2nd Half</div>
+        <div class="rep-grid-row">
+          ${gs(fmtII(h2II),'Intensity Index')}
+          ${gs(h2Act,'Key Actions')}
+          ${gs(fmtOpp(h2Opp),'Opp Possession')}
+        </div>
       </div>
-      ${divider()}
-      <div class="rep-stat-group">
-        ${S.h1Opp!==null?stat(fmtOpp(S.h1Opp),'H1 Opp Poss'):''}
-        ${S.h1Opp!==null?stat(fmtOpp(h2Opp),'H2 Opp Poss'):''}
-        ${stat(fmtOpp(ftOpp),'Total Opp Poss')}
+      <div class="rep-grid-section">
+        <div class="rep-grid-row-label">Overall</div>
+        <div class="rep-grid-row">
+          ${gs(fmtII(ftII),'Intensity Index','hi')}
+          ${gs(ftAct,'Key Actions')}
+          ${gs(fmtOpp(ftOpp),'Opp Possession')}
+        </div>
       </div>
-      ${tgt>0?`${divider()}<div class="rep-stat-group">
-        ${stat(tgt,'Target II')}
-        ${stat(`<span style="color:${col}">${diff!==null?(diff>=0?'+':'')+diff.toFixed(1):'—'}</span>`,'vs Target',diff!==null?(diff>=0?'good':'bad'):'')}
-        ${stat(`<span style="color:${col}">${ftII!==null&&ftII>=tgt?'✓':'✗'}</span>`,'Met Target',ftII!==null?(ftII>=tgt?'good':'bad'):'')}
+      ${tgt>0?`<div class="rep-grid-section">
+        <div class="rep-grid-row-label">Target</div>
+        <div class="rep-grid-row">
+          ${gs(tgt,'Target II')}
+          ${gs(ftDVal,'vs Target',ftDCls)}
+          ${gs(ftII!==null&&ftII>=tgt?'✓':'✗','Met Target',ftDCls)}
+        </div>
       </div>`:''}`;
+    body.appendChild(panel);
   }
-  stats.innerHTML = statsHTML;
 
   document.getElementById('repModal').classList.add('open');
 }
-document.getElementById('btnHTRep').addEventListener('click', ()=>genReport('ht'));
-document.getElementById('btnFTRep').addEventListener('click', ()=>genReport('ft'));
+document.getElementById('btnHTRep').addEventListener('click', () => {
+  genReport('ht');
+  document.getElementById('btnSaveRep').click();
+  document.getElementById('repModal').classList.remove('open');
+});
+document.getElementById('btnFTRep').addEventListener('click', () => {
+  genReport('ft');
+  document.getElementById('btnSaveRep').click();
+  document.getElementById('repModal').classList.remove('open');
+});
 document.getElementById('closeRep').addEventListener('click', ()=>document.getElementById('repModal').classList.remove('open'));
 
 /* ══════════════════════════════════════════════════════════
-   SAVE AS IMAGE — html2canvas
+   SAVE AS IMAGE — pure canvas renderer (no html2canvas)
 ══════════════════════════════════════════════════════════ */
-document.getElementById('btnSaveRep').addEventListener('click', async () => {
+document.getElementById('btnSaveRep').addEventListener('click', () => {
   const btn = document.getElementById('btnSaveRep');
-  btn.textContent = 'Saving…';
-  btn.disabled = true;
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
   try {
-    const card = document.getElementById('printArea');
-    const hdRight = card.querySelector('.rep-hd-right');
-    if (hdRight) hdRight.style.visibility = 'hidden';
-    const canvas = await html2canvas(card, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: '#0d1117',
-      logging: false,
-      windowWidth: card.scrollWidth,
-      windowHeight: card.scrollHeight,
-    });
-    if (hdRight) hdRight.style.visibility = '';
-    const f       = fx();
-    const title   = document.getElementById('repTitle').textContent;
+    const dark  = isDark();
+    const f     = fx();
+    const title = document.getElementById('repTitle').textContent;
+    const badge = document.getElementById('repBadge').textContent;
+    const tgt   = parseFloat(document.getElementById('targetInput').value)||0;
+    const h1II  = calcII(S.h1Act,(S.h1Opp||0)/60);
+    const h2Opp = oppNow(), h2Act = S.act;
+    const h2II  = calcII(h2Act,h2Opp/60);
+    const ftAct = (S.h1Act||0)+h2Act, ftOpp = totOpp();
+    const ftII  = calcII(ftAct,ftOpp/60);
+    const htSec = S.h1Sec, ftSec = matchSec();
+    const isHT  = title.includes('Half');
+
+    // 1920x1080 @ 2x = crisp 3840x2160 internally
+    const W = 1920, H = 1080, sc = 2;
+    const oc = document.createElement('canvas');
+    oc.width = W*sc; oc.height = H*sc;
+    const c = oc.getContext('2d');
+    c.scale(sc, sc);
+
+    const BG      = dark ? '#0d1117' : '#f0f4fa';
+    const SURF    = dark ? '#131c2e' : '#ffffff';
+    const BORDER  = dark ? '#263044' : '#c4cdd9';
+    const TEXT    = dark ? '#e6edf3' : '#0e0f11';
+    const MUTED   = dark ? '#4d6070' : '#6b7280';
+    const ACCENT  = '#1a73e8';
+    const ACCENT2 = '#4a9eff';
+    const GREEN   = '#22c55e';
+    const RED     = '#e74c3c';
+
+    const PAD    = 36;
+    const HD_H   = 120;
+    const STAT_H = 130;
+
+    // Background
+    c.fillStyle = BG;
+    c.fillRect(0, 0, W, H);
+
+    // Header
+    c.fillStyle = '#0a0f1a';
+    c.fillRect(0, 0, W, HD_H);
+    c.fillStyle = ACCENT;
+    c.fillRect(0, HD_H - 3, W, 3);
+
+    c.fillStyle = '#ffffff';
+    c.font = '800 52px Barlow Condensed, sans-serif';
+    c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+    c.fillText(title.toUpperCase(), PAD, 62);
+
+    c.fillStyle = ACCENT2;
+    c.font = '500 23px DM Mono, monospace';
+    c.fillText(badge, PAD, 100);
+
+    // Layout — FT: chart left + 3x3 grid right. HT: chart top + stat bar bottom
+    let pts;
+    if (isHT) {
+      pts = [...S.pts.filter(p=>htSec===null||p.x<=htSec/60+.3)];
+      if(htSec&&h1II!==null) pts.push({x:htSec/60,y:h1II});
+    } else {
+      pts = [...S.pts];
+      if(ftSec>0&&ftII!==null) pts.push({x:ftSec/60,y:ftII});
+    }
+
+    const ii   = isHT ? h1II : ftII;
+    const diff = ii!==null && tgt>0 ? ii-tgt : null;
+    const dCol = diff!==null ? (diff>=0?GREEN:RED) : TEXT;
+
+    if (isHT) {
+      // ── HT: chart fills top, stat bar at bottom
+      const CY = HD_H + PAD;
+      const CH = H - HD_H - STAT_H - PAD * 2;
+      const CW = W - PAD * 2;
+
+      c.fillStyle = SURF;
+      rrect(c, PAD, CY, CW, CH, 10); c.fill();
+      c.strokeStyle = BORDER; c.lineWidth = 1.5;
+      rrect(c, PAD, CY, CW, CH, 10); c.stroke();
+      repChart(c, pts, tgt, null, PAD+14, CY+14, CW-28, CH-28, dark);
+
+      const items = [
+        {v:fmtII(h1II),l:'Intensity Index'},
+        {v:S.h1Act,l:'Key Actions'},
+        {v:fmtOpp(S.h1Opp||0),l:'Opp Possession'},
+      ];
+      if (tgt>0) items.push(
+        {v:tgt,l:'Target II'},
+        {v:diff!==null?(diff>=0?'+':'')+diff.toFixed(1):'—',l:'vs Target',col:dCol},
+        {v:ii!==null&&ii>=tgt?'✓':'✗',l:'Met Target',col:dCol},
+      );
+
+      const cols = items.length, SY = H - STAT_H - PAD + 8;
+      const SW   = (CW - (cols-1)*10) / cols, SH = STAT_H - 16;
+      items.forEach((s, i) => {
+        const bx = PAD + i*(SW+10), by = SY, bw = SW, bh = SH;
+        c.fillStyle = SURF;
+        rrect(c, bx, by, bw, bh, 8); c.fill();
+        c.strokeStyle = BORDER; c.lineWidth = 1.5;
+        rrect(c, bx, by, bw, bh, 8); c.stroke();
+        c.fillStyle = s.col || TEXT;
+        c.font = `800 58px Barlow Condensed, sans-serif`;
+        c.textAlign='center'; c.textBaseline='middle';
+        c.fillText(String(s.v), bx+bw/2, by+bh*0.42);
+        c.fillStyle = MUTED; c.font='700 17px Barlow Condensed, sans-serif';
+        c.fillText(String(s.l).toUpperCase(), bx+bw/2, by+bh*0.76);
+      });
+
+    } else {
+      // ── FT: chart left ~65%, 3x3 grid right ~33%
+      const GRID_W = Math.round(W * 0.32);
+      const CW     = W - PAD * 2 - GRID_W - 16; // chart width
+      const CY     = HD_H + PAD;
+      const CH     = H - HD_H - PAD * 2;
+
+      // Chart box
+      c.fillStyle = SURF;
+      rrect(c, PAD, CY, CW, CH, 10); c.fill();
+      c.strokeStyle = BORDER; c.lineWidth = 1.5;
+      rrect(c, PAD, CY, CW, CH, 10); c.stroke();
+      repChart(c, pts, tgt, htSec, PAD+14, CY+14, CW-28, CH-28, dark);
+
+      // 3x3 grid panel
+      const GX   = PAD + CW + 16;
+      const GW   = GRID_W;
+      const ftDiff = ftII!==null&&tgt>0 ? ftII-tgt : null;
+      const ftDCol = ftDiff!==null?(ftDiff>=0?GREEN:RED):TEXT;
+
+      const sections = [
+        { label: '1st Half', items: [
+          {v:fmtII(h1II),  l:'Intensity Index'},
+          {v:S.h1Act!==null?S.h1Act:'—', l:'Key Actions'},
+          {v:fmtOpp(S.h1Opp||0), l:'Opp Possession'},
+        ]},
+        { label: '2nd Half', items: [
+          {v:fmtII(h2II),  l:'Intensity Index'},
+          {v:h2Act,        l:'Key Actions'},
+          {v:fmtOpp(h2Opp),l:'Opp Possession'},
+        ]},
+        { label: 'Overall', items: [
+          {v:fmtII(ftII),  l:'Intensity Index'},
+          {v:ftAct,        l:'Key Actions'},
+          {v:fmtOpp(ftOpp),l:'Opp Possession'},
+        ]},
+      ];
+      if (tgt > 0) sections.push({ label: 'Target', items: [
+        {v:tgt, l:'Target II'},
+        {v:ftDiff!==null?(ftDiff>=0?'+':'')+ftDiff.toFixed(1):'—', l:'vs Target', col:ftDCol},
+        {v:ftII!==null&&ftII>=tgt?'✓':'✗', l:'Met Target', col:ftDCol},
+      ]});
+
+      const totalSections = sections.length;
+      const LABEL_H = 34;
+      const GAP     = 14;
+      const sectionH = (CH - (totalSections-1)*GAP) / totalSections;
+      const cardH   = sectionH - LABEL_H - 4;
+
+      sections.forEach((sec, si) => {
+        const sy = CY + si * (sectionH + GAP);
+
+        // Section label
+        c.fillStyle = MUTED;
+        c.font = '700 22px Barlow Condensed, sans-serif';
+        c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+        c.fillText(sec.label.toUpperCase(), GX, sy + 22);
+
+        // Divider line under label
+        c.strokeStyle = BORDER; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(GX, sy+27); c.lineTo(GX+GW, sy+27); c.stroke();
+
+        // 3 cards in a row
+        const CGAP = 10;
+        const cw   = (GW - CGAP*2) / 3;
+        const cy2  = sy + LABEL_H + 2;
+
+        sec.items.forEach((item, ci) => {
+          const bx = GX + ci*(cw+CGAP), by = cy2, bw = cw, bh = cardH;
+          c.fillStyle = SURF;
+          rrect(c, bx, by, bw, bh, 8); c.fill();
+          c.strokeStyle = BORDER; c.lineWidth = 1.5;
+          rrect(c, bx, by, bw, bh, 8); c.stroke();
+
+          // Value — bold Barlow Condensed, nice and big
+          c.fillStyle = item.col || TEXT;
+          const vfs = bh < 80 ? 44 : 54;
+          c.font = `800 ${vfs}px Barlow Condensed, sans-serif`;
+          c.textAlign = 'center'; c.textBaseline = 'middle';
+          c.fillText(String(item.v), bx+bw/2, by+bh*0.40);
+
+          // Label
+          c.fillStyle = MUTED;
+          const lfs = bh < 80 ? 14 : 16;
+          c.font = `700 ${lfs}px Barlow Condensed, sans-serif`;
+          c.fillText(String(item.l).toUpperCase(), bx+bw/2, by+bh*0.76);
+        });
+      });
+    }
+
+    // Download
     const dateStr = new Date().toLocaleDateString('en-IE').replace(/\//g,'-');
     const fname   = `${title.replace(/\s+/g,'-')}_${f.home}-v-${f.away}_${dateStr}.png`;
-    canvas.toBlob(blob => {
-      const url  = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url; link.download = fname;
-      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    oc.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(()=>URL.revokeObjectURL(url), 5000);
     }, 'image/png');
+
   } catch(err) {
-    console.error('Save error:', err);
-    alert('Could not save image.');
+    console.error('Canvas render error:', err);
+    alert('Could not save: ' + err.message);
   }
-  btn.textContent = '↓ Save Image';
-  btn.disabled = false;
+  btn.textContent = 'Save as Image'; btn.disabled = false;
 });
+
+function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();}
+
+function repChart(c, pts, target, htSec, x, y, w, h, dark) {
+  const P={t:24,r:20,b:48,l:72};
+  const xMax=Math.max(pts.length?pts[pts.length-1].x*1.06:10,1);
+  const yMax=Math.max(target>0?target*1.5:0,pts.length?Math.max(...pts.map(p=>p.y))*1.25:2,2);
+  const toX=v=>x+P.l+(v/xMax)*(w-P.l-P.r);
+  const toY=v=>y+P.t+(1-v/yMax)*(h-P.t-P.b);
+  const gc=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  const lc=dark?'#7d8590':'#6b7280';
+
+  c.save(); c.beginPath(); c.rect(x,y,w,h); c.clip();
+
+  // Grid
+  c.font='22px DM Mono,monospace';
+  for(let i=0;i<=4;i++){
+    const v=(i/4)*yMax,ly=toY(v);
+    c.strokeStyle=gc;c.lineWidth=1.5;
+    c.beginPath();c.moveTo(x+P.l,ly);c.lineTo(x+w-P.r,ly);c.stroke();
+    c.fillStyle=lc;c.textAlign='right';c.textBaseline='middle';
+    c.fillText(v.toFixed(1),x+P.l-10,ly);
+  }
+  const step=xMax<=10?1:xMax<=20?2:xMax<=40?5:10;
+  for(let m=0;m<=Math.ceil(xMax);m+=step){
+    const lx=toX(m);if(lx>x+w-P.r+4)break;
+    c.strokeStyle=gc;c.lineWidth=1.5;
+    c.beginPath();c.moveTo(lx,y+P.t);c.lineTo(lx,y+h-P.b);c.stroke();
+    c.fillStyle=lc;c.font='22px DM Mono,monospace';c.textAlign='center';c.textBaseline='top';
+    c.fillText(m+"'",lx,y+h-P.b+8);
+  }
+
+  // HT line
+  if(htSec){
+    const hx=toX(htSec/60);
+    c.strokeStyle='rgba(74,158,255,0.5)';c.setLineDash([8,6]);c.lineWidth=2.5;
+    c.beginPath();c.moveTo(hx,y+P.t);c.lineTo(hx,y+h-P.b);c.stroke();
+    c.setLineDash([]);
+    c.font='bold 20px Barlow Condensed,sans-serif';
+    const lw=c.measureText('HT').width+16,lh=26,lx2=hx-lw/2,ly2=y+P.t+4;
+    c.fillStyle='#4a9eff';rrect(c,lx2,ly2,lw,lh,4);c.fill();
+    c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
+    c.fillText('HT',hx,ly2+lh/2);
+  }
+
+  // Target line
+  if(target>0){
+    const ty=toY(target);
+    const curII=pts.length>0?pts[pts.length-1].y:null;
+    const tCol=curII===null?'#22c55e':curII>=target?'#22c55e':'#e74c3c';
+    c.strokeStyle=tCol;c.setLineDash([10,7]);c.lineWidth=2.5;
+    c.beginPath();c.moveTo(x+P.l,ty);c.lineTo(x+w-P.r,ty);c.stroke();
+    c.setLineDash([]);
+    c.fillStyle=tCol;c.font='20px DM Mono,monospace';c.textAlign='right';c.textBaseline='bottom';
+    c.fillText('Target '+target,x+w-P.r-6,ty-6);
+  }
+
+  // Line + fill
+  if(pts.length>1){
+    c.beginPath();c.moveTo(toX(pts[0].x),toY(pts[0].y));
+    for(let i=1;i<pts.length;i++){
+      const p=pts[i-1],q=pts[i],mx=(toX(p.x)+toX(q.x))/2;
+      c.bezierCurveTo(mx,toY(p.y),mx,toY(q.y),toX(q.x),toY(q.y));
+    }
+    c.strokeStyle='#4a9eff';c.lineWidth=4;c.lineJoin='round';c.stroke();
+    c.lineTo(toX(pts[pts.length-1].x),y+h-P.b);
+    c.lineTo(toX(pts[0].x),y+h-P.b);
+    c.closePath();
+    const g=c.createLinearGradient(0,y+P.t,0,y+h-P.b);
+    g.addColorStop(0,dark?'rgba(74,158,255,.3)':'rgba(26,115,232,.2)');
+    g.addColorStop(1,dark?'rgba(74,158,255,.02)':'rgba(26,115,232,.01)');
+    c.fillStyle=g;c.fill();
+  }
+
+  c.restore();
+}
 
 
 
