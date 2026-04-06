@@ -32,6 +32,7 @@
     --surf:    #131c2e;
     --surf2:   #1a2435;
     --border:  #263044;
+    --border-inner: #3a4d68;
     --text:    #e6edf3;
     --muted:   #7d8590;
     --muted2:  #3d444d;
@@ -44,6 +45,7 @@
     --surf:    #ffffff;
     --surf2:   #eaf0fb;
     --border:  #b8c6dc;
+    --border-inner: #96aac8;
     --text:    #0e0f11;
     --muted:   #5c6a7a;
     --muted2:  #a8b4c4;
@@ -62,6 +64,8 @@ body {
   transition: background .2s, color .2s;
 }
 button { cursor:pointer; border:none; background:none; font-family:inherit; }
+button:hover:not(:disabled) { transform: scale(1.02); }
+button:active { transform: scale(0.95) !important; }
 input  { font-family:inherit; }
 
 /* ─── APP SHELL ───────────────────────────────────────────── */
@@ -134,7 +138,7 @@ input  { font-family:inherit; }
   text-transform:uppercase;
   padding:5px 12px;
   border-radius:7px;
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   color: var(--muted);
   background: var(--surf);
   transition: border-color .15s, color .15s;
@@ -144,7 +148,7 @@ input  { font-family:inherit; }
 /* ─── FIXTURE PANEL ───────────────────────────────────────── */
 .fx-panel {
   background: var(--surf);
-  border:1px solid var(--border);
+  border:1px solid var(--accent);
   border-radius: var(--rl);
   overflow:hidden;
   margin-bottom:.6rem;
@@ -152,6 +156,9 @@ input  { font-family:inherit; }
   max-height:600px;
   opacity:1;
   transition: max-height .35s ease, opacity .28s ease, margin .28s ease, border-color .28s;
+  isolation: isolate;
+  position: relative;
+  z-index: 1;
 }
 .fx-panel.collapsed {
   max-height:0;
@@ -168,28 +175,37 @@ input  { font-family:inherit; }
   align-items:end;
 }
 @media(max-width:680px) {
-  .fx-grid { grid-template-columns:1fr 1fr; align-items:end; }
+  .fx-grid { grid-template-columns:1fr 1fr; align-items:end; gap:.6rem; }
   .fx-comp { grid-column:1/-1; }
   .fx-save-cell { grid-column:1/-1; }
 }
 .fx-save-cell { display:flex; flex-direction:column; }
+.fx-save-cell label { visibility:hidden; }
 .btn-save {
   font-family: var(--head);
   font-size:.76rem;
   font-weight:700;
   letter-spacing:.1em;
   text-transform:uppercase;
-  padding:.46rem 1rem;
+  padding:0 1rem;
   border-radius:7px;
   background: var(--accent);
   color:#fff;
   border:1px solid var(--accent);
   transition:filter .15s;
   white-space:nowrap;
-  height:100%;
+  height:2.1rem;
   width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
 }
 .btn-save:hover { filter:brightness(1.1); }
+@media(max-width:680px) {
+  .fx-save-cell label { display:none; }
+  .btn-save { height:2.1rem; }
+}
 .field label {
   display:block;
   font-family: var(--mono);
@@ -202,7 +218,7 @@ input  { font-family:inherit; }
 .field input {
   width:100%;
   background: var(--surf2);
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   color: var(--text);
   font-size:.87rem;
   padding:.46rem .72rem;
@@ -235,7 +251,7 @@ input  { font-family:inherit; }
 /* ─── CARD ─────────────────────────────────────────────────── */
 .card {
   background: var(--surf);
-  border:1px solid var(--border);
+  border:1px solid var(--accent);
   border-radius: var(--rl);
   padding:1rem 1.15rem;
   animation: cardIn .35s ease both;
@@ -263,9 +279,13 @@ input  { font-family:inherit; }
   grid-template-columns:300px 1fr;
   gap:.75rem;
   align-items:stretch;
-  flex:1;          /* fill remaining height inside #app flex column */
-  min-height:0;    /* allow shrinking below content size */
-  overflow:hidden;
+  flex:1;
+  min-height:0;
+  overflow:visible;
+  position:relative;
+  z-index:0;
+  padding:1px;
+  margin:-1px;
 }
 @media(max-width:860px) {
   .main-grid { grid-template-columns:1fr; align-items:start; flex:none; overflow:visible; }
@@ -314,7 +334,7 @@ input  { font-family:inherit; }
   text-transform:uppercase;
   padding:.48rem .95rem;
   border-radius:8px;
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   color: var(--text);
   background: var(--surf2);
   transition:background .13s, border-color .13s, color .13s, transform .08s;
@@ -337,7 +357,7 @@ input  { font-family:inherit; }
   border-radius:4px;
   background: var(--surf2);
   color: var(--muted);
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   white-space:nowrap;
   flex-shrink:0;
 }
@@ -377,7 +397,7 @@ input  { font-family:inherit; }
 }
 .sc {
   background: var(--surf2);
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   border-radius:9px;
   padding:.6rem .65rem;
   text-align:center;
@@ -421,7 +441,7 @@ input  { font-family:inherit; }
 .target-row input[type=number] {
   width:68px;
   background: var(--surf2);
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   color: var(--accent2);
   font-family: var(--mono);
   font-size:1.02rem;
@@ -431,6 +451,7 @@ input  { font-family:inherit; }
   transition:border-color .18s;
   -moz-appearance:textfield;
   box-sizing:border-box;
+  text-align:center;
 }
 .target-row input::-webkit-outer-spin-button,
 .target-row input::-webkit-inner-spin-button { -webkit-appearance:none; }
@@ -444,6 +465,7 @@ input  { font-family:inherit; }
   padding:.36rem .52rem;
   border-radius:8px;
   min-width:68px;
+  flex:1;
   text-align:center;
   display:flex;
   align-items:center;
@@ -468,7 +490,7 @@ input  { font-family:inherit; }
   letter-spacing:.04em;
   padding:1.25rem .9rem;
   border-radius:12px;
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   color: var(--text);
   background: var(--surf2);
   transition:background .1s, transform .08s, border-color .1s;
@@ -486,7 +508,7 @@ input  { font-family:inherit; }
 }
 @media(max-width:860px) { .act-btn span { display:none; } }
 .act-btn:active { transform:scale(0.94); }
-.act-btn.add:hover { border-color: var(--accent2); background: var(--accent-bg); }
+.act-btn.add:hover { border-color: var(--accent2); background: var(--accent-bg); color: var(--accent2); }
 .act-btn.sub:hover { border-color: var(--accent2); color: var(--accent2); background: var(--accent-bg); }
 .act-btn.add:active { background: var(--accent-bg); border-color: var(--accent2); }
 .act-btn.sub { color: var(--muted); }
@@ -500,7 +522,7 @@ input  { font-family:inherit; }
   text-transform:uppercase;
   padding:.95rem 1rem;
   border-radius:12px;
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   color: var(--text);
   background: var(--surf2);
   transition:background .1s, border-color .1s, color .1s, transform .08s;
@@ -557,7 +579,54 @@ input  { font-family:inherit; }
 .opp-btn:not(.active):hover { border-color: var(--accent2); color: var(--accent2); background: var(--accent-bg); }
 .opp-btn.active span { color:rgba(231,76,60,.55); }
 
-/* ─── CHART ────────────────────────────────────────────────── */
+/* ─── CHART EXPAND ──────────────────────────────────────── */
+.chart-card { position:relative; }
+.chart-expand-btn {
+  position:absolute;
+  top:.72rem;
+  right:.85rem;
+  font-size:1rem;
+  color: var(--muted);
+  background:none;
+  border:none;
+  cursor:pointer;
+  padding:3px;
+  border-radius:4px;
+  line-height:1;
+  transition: color .15s, transform .15s;
+  z-index:2;
+}
+.chart-expand-btn svg { width:12px; height:12px; }
+.chart-expand-btn:hover { color: var(--accent2); transform:scale(1.2) !important; }
+/* Stop the sl rule's ::after line from reaching the button */
+.chart-card .sl { padding-right:1.8rem; }
+
+/* Expanded overlay — covers the entire main-grid */
+.chart-card.expanded {
+  position:absolute;
+  inset:0;
+  z-index:50;
+  animation:none !important;
+  display:flex;
+  flex-direction:column;
+  border-color: var(--accent) !important;
+}
+.chart-card.expanded .chart-wrap {
+  flex:1;
+  height:auto;
+  min-height:0;
+}
+/* Hide other cards when chart is expanded */
+.main-grid.chart-expanded .col-l,
+.main-grid.chart-expanded .col-r > .card:not(.chart-card) {
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .25s ease;
+}
+.main-grid.chart-expanded .col-l { transition: opacity .25s ease; }
+@media(max-width:860px) {
+  .chart-card.expanded { position:fixed; inset:0; z-index:200; border-radius:0; margin:0; }
+}
 .chart-wrap {
   position:relative;
   width:100%;
@@ -575,7 +644,7 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
 }
 .period-card {
   background: var(--surf2);
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   border-radius:10px;
   padding:.8rem .75rem;
   text-align:center;
@@ -646,7 +715,7 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   text-transform:uppercase;
   padding:.65rem .6rem;
   border-radius:9px;
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   color: var(--text);
   background: var(--surf2);
   transition:background .13s, border-color .13s, transform .08s;
@@ -667,7 +736,7 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   min-height:42px;
   flex-shrink:0;
   border-radius: var(--r);
-  border:1px solid var(--border);
+  border:1px solid var(--border-inner);
   background: var(--surf2);
   overflow:hidden;
   cursor:pointer;
@@ -722,197 +791,186 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   display:flex;
   justify-content:space-between;
   align-items:center;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
   gap:.5rem;
   font-family: var(--mono);
-  font-size:.61rem;
-  letter-spacing:.1em;
+  font-size:.65rem;
+  font-weight:500;
+  letter-spacing:.08em;
   text-transform:uppercase;
-  color: var(--muted2);
+  color: var(--muted);
+}
+.footer span { white-space:nowrap; }
+@media(max-width:480px) {
+  .footer { font-size:.55rem; letter-spacing:.04em; }
 }
 
 /* ─── MODAL ────────────────────────────────────────────────── */
-.modal-ov {
+/* ─── REPORT OVERLAY ───────────────────────────────────────── */
+.rep-ov {
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.72);
+  background:rgba(0,0,0,.85);
   z-index:300;
-  overflow-y:auto;
-  padding:1.5rem 1rem;
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  align-items:center;
+  justify-content:center;
+  padding:1.2rem;
+  box-sizing:border-box;
 }
-.modal-ov.open { display:block; }
-.modal-card {
-  background:#fff;
-  color:#111;
-  max-width:980px;
-  margin:0 auto;
-  border-radius:14px;
+.rep-ov.open { display:flex; }
+
+/* The report card itself */
+.rep-card {
+  background:#0d1117;
+  color:#e6edf3;
+  width:100%;
+  max-width:960px;
+  height:100%;
+  border-radius:12px;
   overflow:hidden;
-  font-family:'Barlow',sans-serif;
-  box-shadow:0 20px 60px rgba(0,0,0,.45);
-}
-.modal-hd {
-  background:#0a0a0c;
-  color:#fff;
-  padding:1.1rem 1.5rem;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:1rem;
-}
-.modal-hd h2 {
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1.45rem;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.04em;
-  line-height:1;
-}
-.modal-hd .rbadge {
-  font-family:'DM Mono',monospace;
-  font-size:.66rem;
-  color:#4a9eff;
-  margin-top:4px;
-  letter-spacing:.06em;
-}
-.close-modal {
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.14);
-  color:#fff;
-  font-size:1.05rem;
-  width:30px; height:30px;
-  border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer;
-  flex-shrink:0;
-  transition:background .15s;
-}
-.close-modal:hover { background:rgba(255,255,255,.16); }
-.modal-body { padding:1.2rem 1.5rem; }
-.r-layout {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:1.1rem;
-  align-items:stretch;
-}
-.r-layout-chart {
-  display:grid;
-  grid-template-columns:2fr 1fr;
-  gap:1.1rem;
-  align-items:stretch;
-}
-@media(max-width:560px) { .r-layout, .r-layout-chart { grid-template-columns:1fr; } }
-.r-chart-col { display:flex; flex-direction:column; }
-.r-metrics-col { display:flex; flex-direction:column; gap:.5rem; }
-.r-mets-col { display:flex; flex-direction:column; gap:.5rem; margin-bottom:.5rem; }
-.r-cw {
-  background:#f8f9fb;
-  border:1px solid #e4e6ea;
-  border-radius:8px;
-  padding:.75rem;
-  margin-top:.75rem;
-  flex:1;
   display:flex;
   flex-direction:column;
+  box-shadow:0 32px 80px rgba(0,0,0,.7);
+  border:1px solid #263044;
+  font-family:'Barlow',sans-serif;
 }
-.r-cw img { width:100%; height:100%; display:block; border-radius:4px; object-fit:fill; }
-.r-fx {
-  border:1px solid #e4e6ea;
-  border-radius:8px;
-  padding:.75rem 1rem;
-  margin-bottom:.9rem;
-  background:#f8f9fb;
-}
-.r-fx-teams {
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1.2rem;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:.02em;
-}
-.r-fx-meta {
-  font-family:'DM Mono',monospace;
-  font-size:.66rem;
-  color:#777;
-  margin-top:3px;
-  line-height:1.6;
-}
-.rst {
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.6rem;
-  font-weight:700;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:#aaa;
-  padding-bottom:4px;
-  border-bottom:1px solid #eee;
-  margin-bottom:.6rem;
-  margin-top:.85rem;
-}
-.rst:first-of-type { margin-top:0; }
-.r-mets {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:.5rem;
-  margin-bottom:.75rem;
-}
-.r-met {
-  background:#f3f4f6;
-  border:1px solid #e8eaed;
-  border-radius:7px;
-  padding:.6rem .45rem;
-  text-align:center;
-}
-.r-met.hl { background:#0a0a0c; border-color:#0a0a0c; }
-.r-met.hl .mv { color:#4a9eff; }
-.r-met.hl .ml { color:#777; }
-.r-met .mv {
-  font-family:'DM Mono',monospace;
-  font-size:1.55rem;
-  font-weight:500;
-  color:#111;
-  display:block;
-  line-height:1;
-}
-.r-met .ml {
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.58rem;
-  font-weight:700;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-  color:#777;
-  display:block;
-  margin-top:3px;
-}
-.modal-ft {
-  background:#f3f4f6;
-  padding:.8rem 1.5rem;
+
+/* Header strip */
+.rep-hd {
+  background:#0a0f1a;
+  border-bottom:1px solid #1a73e8;
+  padding:.75rem 1.2rem;
   display:flex;
-  gap:.55rem;
-  justify-content:flex-end;
-  flex-wrap:wrap;
+  justify-content:space-between;
   align-items:center;
+  flex-shrink:0;
 }
-.m-btn {
+.rep-hd-left h2 {
   font-family:'Barlow Condensed',sans-serif;
-  font-size:.77rem;
+  font-size:1.35rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  line-height:1;
+  color:#fff;
+}
+.rep-hd-left .rep-fx {
+  font-family:'DM Mono',monospace;
+  font-size:.62rem;
+  color:#4a9eff;
+  margin-top:3px;
+  letter-spacing:.05em;
+}
+.rep-hd-right { display:flex; gap:.55rem; align-items:center; }
+.rep-close {
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  color:#fff;
+  width:28px; height:28px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:1rem;
+  transition:background .15s;
+  flex-shrink:0;
+}
+.rep-close:hover { background:rgba(255,255,255,.15); }
+.rep-save {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.72rem;
   font-weight:700;
   letter-spacing:.1em;
   text-transform:uppercase;
-  padding:.52rem 1.05rem;
-  border-radius:7px;
+  padding:.38rem .9rem;
+  border-radius:6px;
+  background:#1a73e8;
+  color:#fff;
+  border:1px solid #1a73e8;
   cursor:pointer;
-  border:1px solid #ccc;
-  background:#fff;
-  color:#444;
   transition:filter .13s;
 }
-.m-btn.pri { background:#1a73e8; color:#fff; border-color:#1a73e8; }
-.m-btn:hover { filter:brightness(.95); }
-.m-btn.pri:hover { filter:brightness(1.08); }
+.rep-save:hover { filter:brightness(1.1); }
+
+/* Body: chart top, stats bottom */
+.rep-body {
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  min-height:0;
+  padding:.85rem 1rem .85rem;
+  gap:.75rem;
+}
+
+/* Chart area */
+.rep-chart-wrap {
+  flex:1;
+  min-height:0;
+  background:#131c2e;
+  border-radius:8px;
+  border:1px solid #263044;
+  overflow:hidden;
+  position:relative;
+}
+.rep-chart-wrap img {
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:fill;
+}
+
+/* Stats row at bottom */
+.rep-stats {
+  display:flex;
+  gap:.6rem;
+  flex-shrink:0;
+}
+.rep-stat-group {
+  display:flex;
+  gap:.5rem;
+  flex:1;
+}
+.rep-stat-divider {
+  width:1px;
+  background:#263044;
+  flex-shrink:0;
+}
+.rep-stat {
+  flex:1;
+  background:#131c2e;
+  border:1px solid #263044;
+  border-radius:7px;
+  padding:.55rem .5rem;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+}
+.rep-stat.hi {
+  background:#0d1b2e;
+  border-color:#1a73e8;
+}
+.rep-stat.hi .rsv { color:#4a9eff; }
+.rep-stat.good .rsv { color:#22c55e; }
+.rep-stat.bad  .rsv { color:#e74c3c; }
+.rsv {
+  font-family:'DM Mono',monospace;
+  font-size:1.35rem;
+  font-weight:500;
+  color:#e6edf3;
+  line-height:1;
+}
+.rsl {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.55rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#4d6070;
+}
 
 /* ─── FLASH ────────────────────────────────────────────────── */
 @keyframes flash {
@@ -1022,8 +1080,16 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
     <!-- RIGHT: Chart · Periods · Reports/Reset -->
     <div class="col-r">
 
-      <div class="card chart-card">
+      <div class="card chart-card" id="chartCard">
         <div class="sl">Intensity Over Time</div>
+        <button class="chart-expand-btn" id="btnExpandChart" title="Expand chart">
+          <svg id="expandIcon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="10,1 15,1 15,6"/>
+            <polyline points="6,15 1,15 1,10"/>
+            <line x1="15" y1="1" x2="9" y2="7"/>
+            <line x1="1" y1="15" x2="7" y2="9"/>
+          </svg>
+        </button>
         <div class="chart-wrap">
           <canvas id="chart"></canvas>
         </div>
@@ -1069,28 +1135,27 @@ canvas#chart { width:100%!important; height:100%!important; display:block; }
   </div>
 
   <div class="footer">
-    <span>Evan Dunne &thinsp;|&thinsp; Laois GAA</span>
+    <span>© 2026 Evan Dunne | Laois GAA</span>
     <span>evandunne74@gmail.com</span>
   </div>
 </div>
 
-<!-- HIDDEN PRINT CONTAINER -->
-<div id="pdf-print"></div>
-
-<!-- REPORT MODAL -->
-<div class="modal-ov" id="repModal">
-  <div class="modal-card" id="printArea">
-    <div class="modal-hd">
-      <div>
+<!-- REPORT OVERLAY -->
+<div class="rep-ov" id="repModal">
+  <div class="rep-card" id="printArea">
+    <div class="rep-hd">
+      <div class="rep-hd-left">
         <h2 id="repTitle">Report</h2>
-        <div class="rbadge" id="repBadge">—</div>
+        <div class="rep-fx" id="repBadge"></div>
       </div>
-      <button class="close-modal" id="closeRep">✕</button>
+      <div class="rep-hd-right">
+        <button class="rep-save" id="btnSaveRep">Save as Image</button>
+        <button class="rep-close" id="closeRep">✕</button>
+      </div>
     </div>
-    <div class="modal-body" id="repBody"></div>
-    <div class="modal-ft">
-      <button class="m-btn" id="closeRep2">Close</button>
-      <button class="m-btn pri" id="btnSaveRep">Save as Image</button>
+    <div class="rep-body">
+      <div class="rep-chart-wrap" id="repChartWrap"></div>
+      <div class="rep-stats" id="repStats"></div>
     </div>
   </div>
 </div>
@@ -1445,10 +1510,14 @@ function drawChart(hoverX) {
     ctx.fillText(v.toFixed(1),P.l-5,y+4);
   }
 
-  // X axis — clean integer minute labels
+  // X axis — clean integer minute labels + vertical gridlines
   const step = xMax <= 10 ? 1 : xMax <= 20 ? 2 : xMax <= 40 ? 5 : 10;
   for (let m=0; m<=Math.ceil(xMax); m+=step) {
     if (toX(m) > W-P.r+2) break;
+    // Vertical gridline
+    ctx.strokeStyle=gc; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(toX(m),P.t); ctx.lineTo(toX(m),H-P.b); ctx.stroke();
+    // Label
     ctx.fillStyle=lc; ctx.textAlign='center'; ctx.font='10px DM Mono,monospace';
     ctx.fillText(m+"'", toX(m), H-P.b+14);
   }
@@ -1476,14 +1545,16 @@ function drawChart(hoverX) {
     ctx.fillText('HT', hx, ly + lh - 3);
   }
 
-  // Target line
+  // Target line — colour based on current II vs target
   if (target>0) {
     const ty=toY(target);
     if (ty>=P.t&&ty<=H-P.b) {
-      ctx.strokeStyle='#22c55e'; ctx.setLineDash([5,5]); ctx.lineWidth=1.5;
+      const currentII = pts.length>0 ? pts[pts.length-1].y : null;
+      const tCol = currentII===null ? '#22c55e' : currentII>=target ? '#22c55e' : '#e74c3c';
+      ctx.strokeStyle=tCol; ctx.setLineDash([5,5]); ctx.lineWidth=1.5;
       ctx.beginPath(); ctx.moveTo(P.l,ty); ctx.lineTo(W-P.r,ty); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle='#22c55e'; ctx.font='9px DM Mono,monospace'; ctx.textAlign='right';
+      ctx.fillStyle=tCol; ctx.font='9px DM Mono,monospace'; ctx.textAlign='right';
       ctx.fillText('Target '+target, W-P.r-3, ty-4);
     }
   }
@@ -1504,13 +1575,17 @@ function drawChart(hoverX) {
     ctx.fillStyle=g; ctx.fill();
   }
 
-  // Live pulse dot only (no historical dots)
-  if (pts.length > 0 && S.running) {
+  // Live pulsing dot — always show at tip of line when there are points
+  if (pts.length > 0) {
     const lp = pts[pts.length-1];
-    ctx.beginPath(); ctx.arc(toX(lp.x),toY(lp.y),5,0,Math.PI*2);
+    const cx2 = toX(lp.x), cy2 = toY(lp.y);
+    const pulse = (Math.sin(Date.now() / 400) + 1) / 2;
+    const outerR = 7 + pulse * 5;
+    const outerA = 0.06 + pulse * 0.2;
+    ctx.beginPath(); ctx.arc(cx2, cy2, outerR, 0, Math.PI*2);
+    ctx.strokeStyle=`rgba(74,158,255,${outerA.toFixed(2)})`; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx2, cy2, 5, 0, Math.PI*2);
     ctx.fillStyle='#4a9eff'; ctx.fill();
-    ctx.beginPath(); ctx.arc(toX(lp.x),toY(lp.y),9,0,Math.PI*2);
-    ctx.strokeStyle='rgba(74,158,255,.22)'; ctx.lineWidth=1.5; ctx.stroke();
   }
 
   // Hover tooltip (desktop)
@@ -1627,33 +1702,42 @@ function buildChart(pts, target, htSec) {
   const toX=v=>P.l+(v/xMax)*(W-P.l-P.r);
   const toY=v=>P.t+(1-v/yMax)*(H-P.t-P.b);
 
-  c.fillStyle='#f7f8fa'; c.fillRect(0,0,W,H);
+  c.fillStyle='#131c2e'; c.fillRect(0,0,W,H);
   c.font='13px DM Mono,monospace';
   for(let i=0;i<=4;i++){
     const v=(i/4)*yMax,y=toY(v);
-    c.strokeStyle='#e0e3e8';c.lineWidth=1;
+    c.strokeStyle='rgba(255,255,255,.06)';c.lineWidth=1;
     c.beginPath();c.moveTo(P.l,y);c.lineTo(W-P.r,y);c.stroke();
-    c.fillStyle='#666';c.textAlign='right';c.fillText(v.toFixed(1),P.l-8,y+4);
+    c.fillStyle='#7d8590';c.textAlign='right';c.fillText(v.toFixed(1),P.l-8,y+4);
   }
-  for(let i=0;i<=6;i++){
-    const v=(i/6)*xMax;
-    c.fillStyle='#666';c.font='13px DM Mono,monospace';c.textAlign='center';c.fillText(Math.round(v)+"'",toX(v),H-P.b+18);
+  const xstep = xMax<=10?1:xMax<=20?2:xMax<=40?5:10;
+  for(let m=0;m<=Math.ceil(xMax);m+=xstep){
+    if(toX(m)>W-P.r+2) break;
+    c.strokeStyle='rgba(255,255,255,.06)';c.lineWidth=1;
+    c.beginPath();c.moveTo(toX(m),P.t);c.lineTo(toX(m),H-P.b);c.stroke();
+    c.fillStyle='#7d8590';c.font='13px DM Mono,monospace';c.textAlign='center';c.fillText(m+"'",toX(m),H-P.b+18);
   }
   if(htSec){
     const hx=toX(htSec/60);
-    c.strokeStyle='#bbb';c.setLineDash([3,4]);c.lineWidth=1;
+    c.strokeStyle='rgba(74,158,255,0.5)';c.setLineDash([4,3]);c.lineWidth=1.5;
     c.beginPath();c.moveTo(hx,P.t);c.lineTo(hx,H-P.b);c.stroke();
     c.setLineDash([]);
-    c.fillStyle='#999';c.font='12px Barlow Condensed,sans-serif';c.textAlign='center';
-    c.fillText('HT',hx,P.t+11);
+    c.font='bold 11px Barlow Condensed,sans-serif';
+    const lw=c.measureText('HT').width+8, lh=14, ly=P.t, lx=hx-lw/2;
+    c.fillStyle='#4a9eff';
+    c.beginPath();
+    if(c.roundRect) c.roundRect(lx,ly,lw,lh,3); else c.rect(lx,ly,lw,lh);
+    c.fill();
+    c.fillStyle='#fff';c.textAlign='center';c.fillText('HT',hx,ly+lh-3);
   }
   if(target>0){
     const ty=toY(target);
-    c.strokeStyle='#22c55e';c.setLineDash([6,5]);c.lineWidth=1.5;
+    const tCol=target>0?'#22c55e':'#22c55e';
+    c.strokeStyle=tCol;c.setLineDash([6,5]);c.lineWidth=1.5;
     c.beginPath();c.moveTo(P.l,ty);c.lineTo(W-P.r,ty);c.stroke();
     c.setLineDash([]);
-    c.fillStyle='#22c55e';c.font='12px DM Mono,monospace';c.textAlign='right';
-    c.fillText('Target '+target, W-P.r-4, ty-6);
+    c.fillStyle=tCol;c.font='12px DM Mono,monospace';c.textAlign='right';
+    c.fillText('Target '+target,W-P.r-4,ty-6);
   }
   if(pts.length>1){
     c.beginPath();c.moveTo(toX(pts[0].x),toY(pts[0].y));
@@ -1661,10 +1745,10 @@ function buildChart(pts, target, htSec) {
       const p=pts[i-1],q=pts[i],mx=(toX(p.x)+toX(q.x))/2;
       c.bezierCurveTo(mx,toY(p.y),mx,toY(q.y),toX(q.x),toY(q.y));
     }
-    c.strokeStyle='#1a73e8';c.lineWidth=2.5;c.stroke();
+    c.strokeStyle='#4a9eff';c.lineWidth=2.5;c.stroke();
     c.lineTo(toX(pts[pts.length-1].x),toY(0));c.lineTo(toX(pts[0].x),toY(0));c.closePath();
     const g=c.createLinearGradient(0,P.t,0,H-P.b);
-    g.addColorStop(0,'rgba(26,115,232,.18)');g.addColorStop(1,'rgba(26,115,232,.01)');
+    g.addColorStop(0,'rgba(74,158,255,.25)');g.addColorStop(1,'rgba(74,158,255,.02)');
     c.fillStyle=g;c.fill();
   }
   pts.forEach(p=>{c.beginPath();c.arc(toX(p.x),toY(p.y),3,0,Math.PI*2);c.fillStyle='rgba(26,115,232,.55)';c.fill();});
@@ -1672,156 +1756,134 @@ function buildChart(pts, target, htSec) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   REPORT
+   REPORT — canvas-rendered full-screen dark card
 ══════════════════════════════════════════════════════════ */
 function genReport(type) {
-  const f=fx(), tgt=parseFloat(document.getElementById('targetInput').value)||0;
-  const h1II=calcII(S.h1Act,(S.h1Opp||0)/60);
-  const h2Opp=oppNow(), h2Act=S.act;
-  const h2II=calcII(h2Act,h2Opp/60);
-  const ftAct=(S.h1Act||0)+h2Act, ftOpp=totOpp();
-  const ftII=calcII(ftAct,ftOpp/60);
-  const htSec=S.h1Sec, ftSec=matchSec();
+  const f      = fx();
+  const tgt    = parseFloat(document.getElementById('targetInput').value)||0;
+  const h1II   = calcII(S.h1Act,(S.h1Opp||0)/60);
+  const h2Opp  = oppNow(), h2Act = S.act;
+  const h2II   = calcII(h2Act,h2Opp/60);
+  const ftAct  = (S.h1Act||0)+h2Act, ftOpp = totOpp();
+  const ftII   = calcII(ftAct,ftOpp/60);
+  const htSec  = S.h1Sec, ftSec = matchSec();
+  const isHT   = type === 'ht';
 
-  const fxB=`<div class="r-fx">
-    <div class="r-fx-teams">${f.home} <span style="color:#bbb;font-size:.85em">v</span> ${f.away}</div>
-    <div class="r-fx-meta">${[f.comp,fmtDate(f.date),f.venue].filter(Boolean).join(' · ')}</div>
-  </div>`;
+  // Title + fixture badge
+  document.getElementById('repTitle').textContent = isHT ? 'Half Time Report' : 'Full Time Report';
+  document.getElementById('repBadge').textContent = [f.home+' v '+f.away, f.comp, fmtDate(f.date), f.venue].filter(Boolean).join(' · ');
 
-  let L='',R='';
-
-  if(type==='ht'){
-    document.getElementById('repTitle').textContent='Half Time Report';
-    document.getElementById('repBadge').textContent=[f.home+' v '+f.away, f.comp, fmtDate(f.date), f.venue].filter(Boolean).join(' · ');
-    const diff=h1II!==null?h1II-tgt:null;
-    const col=diff!==null?(diff>=0?'#22c55e':'#e74c3c'):'#888';
-
-    const p1=[...S.pts.filter(p=>htSec===null||p.x<=htSec/60+.3)];
-    if(htSec&&h1II!==null) p1.push({x:htSec/60,y:h1II});
-    const chartImg = p1.length>1 ? `<img src="${buildChart(p1,tgt,null)}"/>` :
-      '<div style="color:#aaa;font-size:.85rem;padding:2rem;text-align:center">Not enough data</div>';
-
-    // metrics HTML (stacked single column for sidebar)
-    const metricsHTML = `
-      <div class="rst">Metrics</div>
-      <div class="r-mets r-mets-col">
-        <div class="r-met hl"><span class="mv">${fmtII(h1II)}</span><span class="ml">Intensity Index</span></div>
-        <div class="r-met"><span class="mv">${S.h1Act}</span><span class="ml">Key Actions</span></div>
-        <div class="r-met"><span class="mv">${fmtOpp(S.h1Opp||0)}</span><span class="ml">Opp Possession</span></div>
-      </div>
-      ${tgt>0?`<div class="rst">Target</div><div class="r-mets r-mets-col">
-        <div class="r-met"><span class="mv">${tgt}</span><span class="ml">Target II</span></div>
-        <div class="r-met"><span class="mv" style="color:${col}">${diff!==null?(diff>=0?'+':'')+diff.toFixed(1):'—'}</span><span class="ml">vs Target</span></div>
-        <div class="r-met"><span class="mv" style="color:${col}">${h1II!==null&&h1II>=tgt?'✓':'✗'}</span><span class="ml">Met Target</span></div>
-      </div>`:''}`;
-
-    L = `<div class="r-chart-col r-cw">${chartImg}</div>`;
-    R = `<div class="r-metrics-col">${metricsHTML}</div>`;
+  // Build chart image
+  let pts;
+  if (isHT) {
+    pts = [...S.pts.filter(p=>htSec===null||p.x<=htSec/60+.3)];
+    if(htSec&&h1II!==null) pts.push({x:htSec/60,y:h1II});
+  } else {
+    pts = [...S.pts];
+    if(ftSec>0&&ftII!==null) pts.push({x:ftSec/60,y:ftII});
   }
+  const chartSrc = pts.length>1 ? buildChart(pts, tgt, isHT?null:htSec) : null;
 
-  if(type==='ft'){
-    document.getElementById('repTitle').textContent='Full Time Report';
-    document.getElementById('repBadge').textContent=[f.home+' v '+f.away, f.comp, fmtDate(f.date), f.venue].filter(Boolean).join(' · ');
-    const diff=ftII!==null?ftII-tgt:null;
-    const col=diff!==null?(diff>=0?'#22c55e':'#e74c3c'):'#888';
+  // Chart area
+  const chartWrap = document.getElementById('repChartWrap');
+  chartWrap.innerHTML = chartSrc
+    ? `<img src="${chartSrc}" style="width:100%;height:100%;display:block;object-fit:fill;"/>`
+    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#4d6070;font-family:var(--mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;">Not enough data yet</div>`;
 
-    const allP=[...S.pts];
-    if(ftSec>0&&ftII!==null) allP.push({x:ftSec/60,y:ftII});
-    const chartImg = allP.length>1 ? `<img src="${buildChart(allP,tgt,htSec)}"/>` :
-      '<div style="color:#aaa;font-size:.85rem;padding:2rem;text-align:center">Not enough data</div>';
+  // Build stats
+  const stats = document.getElementById('repStats');
+  const ii   = isHT ? h1II : ftII;
+  const diff = ii!==null && tgt>0 ? ii-tgt : null;
+  const col  = diff!==null ? (diff>=0?'#22c55e':'#e74c3c') : '#e6edf3';
 
-    const metricsHTML = `
-      <div class="rst">Summary</div>
-      <div class="r-mets r-mets-col">
-        ${S.h1Act!==null?`
-        <div class="r-met"><span class="mv">${fmtII(h1II)}</span><span class="ml">1st Half II</span></div>
-        <div class="r-met"><span class="mv">${fmtII(h2II)}</span><span class="ml">2nd Half II</span></div>`:''}
-        <div class="r-met hl"><span class="mv">${fmtII(ftII)}</span><span class="ml">Full Time II</span></div>
-      </div>
-      <div class="rst">Actions</div>
-      <div class="r-mets r-mets-col">
-        ${S.h1Act!==null?`
-        <div class="r-met"><span class="mv">${S.h1Act}</span><span class="ml">H1 Actions</span></div>
-        <div class="r-met"><span class="mv">${h2Act}</span><span class="ml">H2 Actions</span></div>`:''}
-        <div class="r-met"><span class="mv">${ftAct}</span><span class="ml">Total</span></div>
-      </div>
-      <div class="rst">Possession</div>
-      <div class="r-mets r-mets-col">
-        ${S.h1Opp!==null?`
-        <div class="r-met"><span class="mv">${fmtOpp(S.h1Opp)}</span><span class="ml">H1 Opp Poss</span></div>
-        <div class="r-met"><span class="mv">${fmtOpp(h2Opp)}</span><span class="ml">H2 Opp Poss</span></div>`:''}
-        <div class="r-met"><span class="mv">${fmtOpp(ftOpp)}</span><span class="ml">Total</span></div>
-      </div>
-      ${tgt>0?`<div class="rst">Target</div><div class="r-mets r-mets-col">
-        <div class="r-met"><span class="mv">${tgt}</span><span class="ml">Target II</span></div>
-        <div class="r-met"><span class="mv" style="color:${col}">${diff!==null?(diff>=0?'+':'')+diff.toFixed(1):'—'}</span><span class="ml">vs Target</span></div>
-        <div class="r-met"><span class="mv" style="color:${col}">${ftII!==null&&ftII>=tgt?'✓':'✗'}</span><span class="ml">Met Target</span></div>
-      </div>`:''}`;
-
-    L = `<div class="r-chart-col r-cw">${chartImg}</div>`;
-    R = `<div class="r-metrics-col">${metricsHTML}</div>`;
+  function stat(val, label, cls='') {
+    return `<div class="rep-stat${cls?(' '+cls):''}"><span class="rsv">${val}</span><span class="rsl">${label}</span></div>`;
   }
+  function divider() { return '<div class="rep-stat-divider"></div>'; }
 
-  document.getElementById('repBody').innerHTML = `<div class="r-layout r-layout-chart">${L}${R}</div>`;
+  let statsHTML = '';
+  if (isHT) {
+    statsHTML = `
+      <div class="rep-stat-group">
+        ${stat(fmtII(h1II), 'Intensity Index', 'hi')}
+        ${stat(S.h1Act, 'Key Actions')}
+        ${stat(fmtOpp(S.h1Opp||0), 'Opp Possession')}
+      </div>
+      ${tgt>0?`${divider()}<div class="rep-stat-group">
+        ${stat(tgt,'Target II')}
+        ${stat(`<span style="color:${col}">${diff!==null?(diff>=0?'+':'')+diff.toFixed(1):'—'}</span>`,'vs Target', diff!==null?(diff>=0?'good':'bad'):'')}
+        ${stat(`<span style="color:${col}">${h1II!==null&&h1II>=tgt?'✓':'✗'}</span>`,'Met Target',h1II!==null?(h1II>=tgt?'good':'bad'):'')}
+      </div>`:''}`;
+  } else {
+    statsHTML = `
+      <div class="rep-stat-group">
+        ${S.h1Act!==null?stat(fmtII(h1II),'H1 Index'):''}
+        ${S.h1Act!==null?stat(fmtII(h2II),'H2 Index'):''}
+        ${stat(fmtII(ftII),'Full Time II','hi')}
+      </div>
+      ${divider()}
+      <div class="rep-stat-group">
+        ${S.h1Act!==null?stat(S.h1Act,'H1 Actions'):''}
+        ${S.h1Act!==null?stat(h2Act,'H2 Actions'):''}
+        ${stat(ftAct,'Total Actions')}
+      </div>
+      ${divider()}
+      <div class="rep-stat-group">
+        ${S.h1Opp!==null?stat(fmtOpp(S.h1Opp),'H1 Opp Poss'):''}
+        ${S.h1Opp!==null?stat(fmtOpp(h2Opp),'H2 Opp Poss'):''}
+        ${stat(fmtOpp(ftOpp),'Total Opp Poss')}
+      </div>
+      ${tgt>0?`${divider()}<div class="rep-stat-group">
+        ${stat(tgt,'Target II')}
+        ${stat(`<span style="color:${col}">${diff!==null?(diff>=0?'+':'')+diff.toFixed(1):'—'}</span>`,'vs Target',diff!==null?(diff>=0?'good':'bad'):'')}
+        ${stat(`<span style="color:${col}">${ftII!==null&&ftII>=tgt?'✓':'✗'}</span>`,'Met Target',ftII!==null?(ftII>=tgt?'good':'bad'):'')}
+      </div>`:''}`;
+  }
+  stats.innerHTML = statsHTML;
+
   document.getElementById('repModal').classList.add('open');
 }
-
 document.getElementById('btnHTRep').addEventListener('click', ()=>genReport('ht'));
 document.getElementById('btnFTRep').addEventListener('click', ()=>genReport('ft'));
-document.getElementById('closeRep').addEventListener('click',  ()=>document.getElementById('repModal').classList.remove('open'));
-document.getElementById('closeRep2').addEventListener('click', ()=>document.getElementById('repModal').classList.remove('open'));
+document.getElementById('closeRep').addEventListener('click', ()=>document.getElementById('repModal').classList.remove('open'));
 
 /* ══════════════════════════════════════════════════════════
-   SAVE AS IMAGE — html2canvas screenshot of modal
+   SAVE AS IMAGE — html2canvas
 ══════════════════════════════════════════════════════════ */
 document.getElementById('btnSaveRep').addEventListener('click', async () => {
   const btn = document.getElementById('btnSaveRep');
   btn.textContent = 'Saving…';
   btn.disabled = true;
-
   try {
-    const modalCard  = document.getElementById('printArea');
-    const modalFt    = modalCard.querySelector('.modal-ft');
-    const closeBtn   = modalCard.querySelector('.close-modal');
-    // Hide UI chrome during capture
-    if (modalFt)  modalFt.style.visibility  = 'hidden';
-    if (closeBtn) closeBtn.style.visibility = 'hidden';
-
-    const canvas = await html2canvas(modalCard, {
+    const card = document.getElementById('printArea');
+    const hdRight = card.querySelector('.rep-hd-right');
+    if (hdRight) hdRight.style.visibility = 'hidden';
+    const canvas = await html2canvas(card, {
       scale: 3,
       useCORS: true,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#0d1117',
       logging: false,
-      windowWidth: modalCard.scrollWidth,
-      windowHeight: modalCard.scrollHeight,
+      windowWidth: card.scrollWidth,
+      windowHeight: card.scrollHeight,
     });
-
-    if (modalFt)  modalFt.style.visibility  = '';
-    if (closeBtn) closeBtn.style.visibility = '';
-
+    if (hdRight) hdRight.style.visibility = '';
     const f       = fx();
     const title   = document.getElementById('repTitle').textContent;
-    const dateStr = new Date().toLocaleDateString('en-IE').replace(/\//g, '-');
+    const dateStr = new Date().toLocaleDateString('en-IE').replace(/\//g,'-');
     const fname   = `${title.replace(/\s+/g,'-')}_${f.home}-v-${f.away}_${dateStr}.png`;
-
     canvas.toBlob(blob => {
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href     = url;
-      link.download = fname;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      link.href = url; link.download = fname;
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      setTimeout(()=>URL.revokeObjectURL(url), 5000);
     }, 'image/png');
-
-  } catch (err) {
-    console.error('Image export error:', err);
-    alert('Could not save image. Please try again.');
+  } catch(err) {
+    console.error('Save error:', err);
+    alert('Could not save image.');
   }
-
-  btn.textContent = 'Save as Image';
-  btn.disabled    = false;
+  btn.textContent = '↓ Save Image';
+  btn.disabled = false;
 });
 
 
@@ -1924,6 +1986,35 @@ document.getElementById('btnSaveRep').addEventListener('click', async () => {
     render();
     document.dispatchEvent(new Event('sessionReset'));
   }
+})();
+
+/* ══════════════════════════════════════════════════════════
+   CHART EXPAND / COLLAPSE
+══════════════════════════════════════════════════════════ */
+(function(){
+  const btn  = document.getElementById('btnExpandChart');
+  const icon = document.getElementById('expandIcon');
+  const card = document.getElementById('chartCard');
+  const grid = document.querySelector('.main-grid');
+  let expanded = false;
+
+  const svgExpand   = `<polyline points="10,1 15,1 15,6"/><polyline points="6,15 1,15 1,10"/><line x1="15" y1="1" x2="9" y2="7"/><line x1="1" y1="15" x2="7" y2="9"/>`;
+  const svgCollapse = `<polyline points="9,1 9,7 15,7"/><polyline points="7,9 7,15 1,15"/><line x1="9" y1="7" x2="15" y2="1"/><line x1="7" y1="9" x2="1" y2="15"/>`;
+
+  function toggle() {
+    expanded = !expanded;
+    card.classList.toggle('expanded', expanded);
+    grid.classList.toggle('chart-expanded', expanded);
+    icon.innerHTML = expanded ? svgCollapse : svgExpand;
+    btn.title = expanded ? 'Collapse chart' : 'Expand chart';
+    setTimeout(() => { sizeCanvas(); drawChart(chartHoverX); }, 50);
+  }
+
+  btn.addEventListener('click', toggle);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && expanded) toggle();
+  });
 })();
 
 /* ══════════════════════════════════════════════════════════
@@ -2076,8 +2167,14 @@ setInterval(()=>{
   if(S.accumMs > 0 || S.act > 0 || S.oppAcc > 0) saveSession();
 }, 5000);
 
-// Also save immediately on key interactions
 setInterval(()=>{ if(S.running||S.oppOn) render(); }, 250);
+
+// Smooth pulse animation via requestAnimationFrame
+(function pulseTick() {
+  if (S.pts.length > 0) drawChart(chartHoverX);
+  requestAnimationFrame(pulseTick);
+})();
+
 render();
 </script>
 </body>
